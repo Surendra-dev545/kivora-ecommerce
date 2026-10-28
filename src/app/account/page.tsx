@@ -1,16 +1,73 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, type FormEvent } from 'react';
-import { ArrowLeft, ArrowRight, Check, LockKeyhole, Mail, ShieldCheck, Sparkles, UserRound } from 'lucide-react';
+import { useEffect, useState, type FormEvent } from 'react';
+import { ArrowLeft, ArrowRight, Check, LockKeyhole, Mail, ShieldCheck, Sparkles, UserRound, LogOut } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 export default function AccountPage() {
   const [mode, setMode] = useState<'signin' | 'create'>('create');
-  const [submitted, setSubmitted] = useState(false);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  useEffect(() => {
+    let mounted = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (mounted) setUserEmail(data.session?.user.email ?? null);
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserEmail(session?.user.email ?? null);
+    });
+    return () => {
+      mounted = false;
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSubmitted(true);
+    setBusy(true);
+    setError('');
+    setMessage('');
+    try {
+      if (mode === 'create') {
+        const { data, error: authError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { full_name: name } },
+        });
+        if (authError) throw authError;
+        if (data.session) {
+          setUserEmail(data.session.user.email ?? email);
+          setMessage('Your account has been created and you are signed in.');
+        } else {
+          setMessage('Account created. Check your email for a confirmation link before signing in.');
+        }
+      } else {
+        const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
+        if (authError) throw authError;
+        setUserEmail(data.user.email ?? email);
+        setMessage('You are signed in. Welcome back!');
+      }
+      setPassword('');
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Something went wrong. Please try again.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleSignOut() {
+    setError('');
+    setMessage('');
+    const { error: authError } = await supabase.auth.signOut();
+    if (authError) setError(authError.message);
+    else setMessage('You have signed out.');
   }
 
   return (
@@ -33,19 +90,31 @@ export default function AccountPage() {
           <div className="accountStoryImage" role="img" aria-label="Warm, calm home interior" />
         </div>
         <div className="accountFormPanel">
-          <div className="accountFormHeading"><span className="accountFormIcon"><UserRound size={20} /></span><span className="eyebrow">WELCOME TO KIVORA</span><h2>{mode === 'create' ? 'Create your account.' : 'Welcome back.'}</h2><p>{mode === 'create' ? 'A few details to get you started.' : 'Your little finds are waiting.'}</p></div>
-          <div className="accountTabs" role="tablist" aria-label="Account access">
-            <button type="button" role="tab" aria-selected={mode === 'create'} className={mode === 'create' ? 'accountTab accountTabActive' : 'accountTab'} onClick={() => { setMode('create'); setSubmitted(false); }}>Create account</button>
-            <button type="button" role="tab" aria-selected={mode === 'signin'} className={mode === 'signin' ? 'accountTab accountTabActive' : 'accountTab'} onClick={() => { setMode('signin'); setSubmitted(false); }}>Sign in</button>
-          </div>
-          {submitted ? <div className="accountFeedback" role="status"><span className="accountFeedbackIcon"><Check size={22} /></span><h3>You're all set to preview.</h3><p>This account form is a design preview only. Secure sign-in and account storage haven't been connected yet, so no details were sent or saved.</p><button type="button" className="primaryButton" onClick={() => setSubmitted(false)}>Back to form <ArrowRight size={16} /></button></div> : <form className="accountForm" onSubmit={handleSubmit}>
-            {mode === 'create' && <label>Full name<div className="accountInputWrap"><UserRound size={16} /><input name="name" type="text" placeholder="Your name" autoComplete="name" required /></div></label>}
-            <label>Email address<div className="accountInputWrap"><Mail size={16} /><input name="email" type="email" placeholder="you@example.com" autoComplete="email" required /></div></label>
-            <label>Password<div className="accountInputWrap"><LockKeyhole size={16} /><input name="password" type="password" placeholder="At least 8 characters" minLength={8} autoComplete={mode === 'create' ? 'new-password' : 'current-password'} required /></div></label>
-            {mode === 'create' && <p className="accountFinePrint">By continuing, you agree to our terms and privacy policy. These links will be added when account services are connected.</p>}
-            <button className="accountSubmit" type="submit">{mode === 'create' ? 'Create account' : 'Sign in'} <ArrowRight size={17} /></button>
-            <p className="accountDemoNotice"><ShieldCheck size={15} /> Preview only — secure account services aren't connected yet.</p>
-          </form>}
+          <div className="accountFormHeading"><span className="accountFormIcon"><UserRound size={20} /></span><span className="eyebrow">WELCOME TO KIVORA</span><h2>{userEmail ? 'You’re signed in.' : mode === 'create' ? 'Create your account.' : 'Welcome back.'}</h2><p>{userEmail ? 'Your Kivora account is connected.' : mode === 'create' ? 'A few details to get you started.' : 'Your little finds are waiting.'}</p></div>
+          {userEmail ? (
+            <div className="accountFeedback" role="status">
+              <span className="accountFeedbackIcon"><Check size={22} /></span>
+              <h3>Welcome to Kivora.</h3>
+              <p>You’re signed in as <strong>{userEmail}</strong>.</p>
+              {message && <p>{message}</p>}
+              <button type="button" className="primaryButton" onClick={handleSignOut}><LogOut size={16} /> Sign out</button>
+            </div>
+          ) : <>
+            <div className="accountTabs" role="tablist" aria-label="Account access">
+              <button type="button" role="tab" aria-selected={mode === 'create'} className={mode === 'create' ? 'accountTab accountTabActive' : 'accountTab'} onClick={() => { setMode('create'); setMessage(''); setError(''); }}>Create account</button>
+              <button type="button" role="tab" aria-selected={mode === 'signin'} className={mode === 'signin' ? 'accountTab accountTabActive' : 'accountTab'} onClick={() => { setMode('signin'); setMessage(''); setError(''); }}>Sign in</button>
+            </div>
+            <form className="accountForm" onSubmit={handleSubmit}>
+              {mode === 'create' && <label>Full name<div className="accountInputWrap"><UserRound size={16} /><input name="name" type="text" placeholder="Your name" autoComplete="name" value={name} onChange={(event) => setName(event.target.value)} required /></div></label>}
+              <label>Email address<div className="accountInputWrap"><Mail size={16} /><input name="email" type="email" placeholder="you@example.com" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></div></label>
+              <label>Password<div className="accountInputWrap"><LockKeyhole size={16} /><input name="password" type="password" placeholder="At least 8 characters" minLength={8} autoComplete={mode === 'create' ? 'new-password' : 'current-password'} value={password} onChange={(event) => setPassword(event.target.value)} required /></div></label>
+              {error && <p className="accountAuthError" role="alert">{error}</p>}
+              {message && <p className="accountAuthMessage" role="status">{message}</p>}
+              {mode === 'create' && <p className="accountFinePrint">By continuing, you agree to our terms and privacy policy. These links will be added when account services are connected.</p>}
+              <button className="accountSubmit" type="submit" disabled={busy}>{busy ? 'Please wait…' : mode === 'create' ? 'Create account' : 'Sign in'} {!busy && <ArrowRight size={17} />}</button>
+              <p className="accountDemoNotice"><ShieldCheck size={15} /> Secure sign-in powered by Supabase.</p>
+            </form>
+          </>}
           <div className="accountFormBottom"><span>Just browsing?</span> <Link href="/#shop">Explore the collection <ArrowRight size={14} /></Link></div>
         </div>
       </section>
