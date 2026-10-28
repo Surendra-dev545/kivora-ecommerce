@@ -13,6 +13,7 @@ export default function AccountPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(true);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -69,6 +70,9 @@ export default function AccountPage() {
           setMessage('Account created. Check your email for a confirmation link before signing in.');
         }
       } else {
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem('kivora-remember-me', rememberMe ? 'true' : 'false');
+        }
         const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
         if (authError) throw authError;
         setUserEmail(data.user.email ?? email);
@@ -167,6 +171,7 @@ export default function AccountPage() {
               {accessType === 'customer' && mode === 'create' && <label>Full name<div className="accountInputWrap"><UserRound size={16} /><input name="name" type="text" placeholder="Your name" autoComplete="name" value={name} onChange={(event) => setName(event.target.value)} required /></div></label>}
               <label>Email address<div className="accountInputWrap"><Mail size={16} /><input name="email" type="email" placeholder="you@example.com" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></div></label>
               <label>Password<div className="accountInputWrap"><LockKeyhole size={16} /><input name="password" type="password" placeholder="At least 8 characters" minLength={8} autoComplete={accessType === 'customer' && mode === 'create' ? 'new-password' : 'current-password'} value={password} onChange={(event) => setPassword(event.target.value)} required /></div></label>
+              {mode === 'signin' && <label className="accountRememberMe"><input type="checkbox" checked={rememberMe} onChange={(event) => setRememberMe(event.target.checked)} /> <span>Remember me</span></label>}
               {error && <p className="accountAuthError" role="alert">{error}</p>}
               {message && <p className="accountAuthMessage" role="status">{message}</p>}
               {accessType === 'customer' && mode === 'create' && <p className="accountFinePrint">By continuing, you agree to our terms and privacy policy. These links will be added when account services are connected.</p>}
