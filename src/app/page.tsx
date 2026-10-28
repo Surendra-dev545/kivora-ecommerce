@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, ArrowUpRight, Check, ChevronDown, Heart, Menu, Search, ShoppingBag, Sparkles, UserRound, X } from 'lucide-react';
 
 type Product = { id: number; name: string; category: string; price: number; image: string; tag?: string; description: string };
@@ -27,10 +27,26 @@ export default function Home() {
   const [category, setCategory] = useState('All');
   const [search, setSearch] = useState('');
   const [cart, setCart] = useState<Product[]>([]);
+  const [cartLoaded, setCartLoaded] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [favorites, setFavorites] = useState<number[]>([]);
   const [added, setAdded] = useState<number | null>(null);
+
+  useEffect(() => {
+    try {
+      const savedCart = window.localStorage.getItem('kivora-cart');
+      if (savedCart) setCart(JSON.parse(savedCart) as Product[]);
+    } catch {
+      window.localStorage.removeItem('kivora-cart');
+    } finally {
+      setCartLoaded(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (cartLoaded) window.localStorage.setItem('kivora-cart', JSON.stringify(cart));
+  }, [cart, cartLoaded]);
 
   const filtered = useMemo(() => products.filter((p) => (category === 'All' || p.category === category) && (p.name + ' ' + p.description + ' ' + p.category).toLowerCase().includes(search.toLowerCase())), [category, search]);
   const total = cart.reduce((sum, p) => sum + p.price, 0);
@@ -73,7 +89,7 @@ export default function Home() {
       </div>
       <footer className="footer"><div className="siteWrap"><div className="footerTop"><div><a className="logo footerLogo" href="#">kivora<span>.</span></a><p>Everyday finds, elevated.</p></div><div className="footerLinks"><a href="#shop">Shop all</a><a href="#story">Our story</a><a href="mailto:hello@kivora.example">Contact</a></div><div className="footerSignoff">Made for the life you love. <span>✳</span></div></div><div className="footerBottom"><span>© 2026 Kivora. Demo storefront.</span><span>Thoughtfully found. Everyday loved.</span></div></div></footer>
 
-      {cartOpen && <div className="drawerBackdrop" onClick={() => setCartOpen(false)}><aside className="cartDrawer" role="dialog" aria-modal="true" aria-label="Shopping bag" onClick={(e) => e.stopPropagation()}><div className="drawerHeader"><div><span className="eyebrow">YOUR LITTLE FINDS</span><h2>Your bag <span>({cart.length})</span></h2></div><button className="iconButton" onClick={() => setCartOpen(false)} aria-label="Close shopping bag"><X size={21} /></button></div>{cart.length === 0 ? <div className="emptyBag"><span className="emptyBagIcon"><ShoppingBag size={27} /></span><h3>Your bag is taking a little break.</h3><p>It's ready when you find something you love.</p><button className="primaryButton" onClick={() => { setCartOpen(false); scrollToShop(); }}>Explore the collection <ArrowRight size={16} /></button></div> : <><div className="cartItems">{cart.map((p, index) => <div className="cartItem" key={`${p.id}-${index}`}><img src={p.image} alt="" /><div><b>{p.name}</b><small>{p.category}</small><button className="removeItem" onClick={() => setCart((current) => current.filter((_, i) => i !== index))}>Remove</button></div><strong>{money(p.price)}</strong></div>)}</div><div className="cartSummary"><div className="shippingMessage">{total >= 4999 ? 'You unlocked complimentary shipping!' : `You're ${money(4999 - total)} away from complimentary shipping.`}</div><div className="shippingTrack"><span style={{ width: `${Math.min(100, (total / 4999) * 100)}%` }} /></div><div className="cartTotal"><span>Subtotal</span><strong>{money(total)}</strong></div><p>Shipping and taxes calculated at checkout.</p><button className="checkoutButton" onClick={() => alert('Checkout will be connected in a future phase. Your bag is working!')}>Continue to checkout <ArrowRight size={17} /></button><button className="continueShopping" onClick={() => setCartOpen(false)}>Keep browsing</button></div></>}</aside></div>}
+      {cartOpen && <div className="drawerBackdrop" onClick={() => setCartOpen(false)}><aside className="cartDrawer" role="dialog" aria-modal="true" aria-label="Shopping bag" onClick={(e) => e.stopPropagation()}><div className="drawerHeader"><div><span className="eyebrow">YOUR LITTLE FINDS</span><h2>Your bag <span>({cart.length})</span></h2></div><button className="iconButton" onClick={() => setCartOpen(false)} aria-label="Close shopping bag"><X size={21} /></button></div>{cart.length === 0 ? <div className="emptyBag"><span className="emptyBagIcon"><ShoppingBag size={27} /></span><h3>Your bag is taking a little break.</h3><p>It's ready when you find something you love.</p><button className="primaryButton" onClick={() => { setCartOpen(false); scrollToShop(); }}>Explore the collection <ArrowRight size={16} /></button></div> : <><div className="cartItems">{cart.map((p, index) => <div className="cartItem" key={`${p.id}-${index}`}><img src={p.image} alt="" /><div><b>{p.name}</b><small>{p.category}</small><button className="removeItem" onClick={() => setCart((current) => current.filter((_, i) => i !== index))}>Remove</button></div><strong>{money(p.price)}</strong></div>)}</div><div className="cartSummary"><div className="shippingMessage">{total >= 4999 ? 'You unlocked complimentary shipping!' : `You're ${money(4999 - total)} away from complimentary shipping.`}</div><div className="shippingTrack"><span style={{ width: `${Math.min(100, (total / 4999) * 100)}%` }} /></div><div className="cartTotal"><span>Subtotal</span><strong>{money(total)}</strong></div><p>Shipping and taxes calculated at checkout.</p><button className="checkoutButton" onClick={() => { window.location.assign('/checkout'); }}>Continue to checkout <ArrowRight size={17} /></button><button className="continueShopping" onClick={() => setCartOpen(false)}>Keep browsing</button></div></>}</aside></div>}
     </>
   );
 }

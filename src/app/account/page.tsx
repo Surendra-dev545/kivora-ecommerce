@@ -14,14 +14,19 @@ export default function AccountPage() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
     supabase.auth.getSession().then(({ data }) => {
-      if (mounted) setUserEmail(data.session?.user.email ?? null);
+      if (mounted) {
+        setUserEmail(data.session?.user.email ?? null);
+        setUserName((data.session?.user.user_metadata?.full_name as string | undefined) ?? null);
+      }
     });
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUserEmail(session?.user.email ?? null);
+      setUserName((session?.user.user_metadata?.full_name as string | undefined) ?? null);
     });
     return () => {
       mounted = false;
@@ -44,6 +49,7 @@ export default function AccountPage() {
         if (authError) throw authError;
         if (data.session) {
           setUserEmail(data.session.user.email ?? email);
+          setUserName((data.session.user.user_metadata?.full_name as string | undefined) ?? name);
           setMessage('Your account has been created and you are signed in.');
         } else {
           setMessage('Account created. Check your email for a confirmation link before signing in.');
@@ -52,6 +58,7 @@ export default function AccountPage() {
         const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
         if (authError) throw authError;
         setUserEmail(data.user.email ?? email);
+        setUserName((data.user.user_metadata?.full_name as string | undefined) ?? null);
         setMessage('You are signed in. Welcome back!');
       }
       setPassword('');
@@ -81,11 +88,11 @@ export default function AccountPage() {
         <div className="accountStory">
           <span className="eyebrow"><span className="eyebrowLine" /> A LITTLE SPACE OF YOUR OWN</span>
           <h1>Good things,<br /><em>all in one place.</em></h1>
-          <p>Your Kivora account will make it easier to keep track of favorite finds and, when checkout is ready, your orders too.</p>
+          <p>Your Kivora account keeps your details, order history and delivery updates together in one place.</p>
           <div className="accountBenefits">
             <div><span><HeartIcon /></span><p><b>Keep your favorites close</b><small>Save the pieces you love for later.</small></p></div>
             <div><span><ShieldCheck size={18} /></span><p><b>Your own little corner</b><small>A personal space for your shopping.</small></p></div>
-            <div><span><Check size={18} /></span><p><b>More to come</b><small>Order history and faster checkout are on the roadmap.</small></p></div>
+            <div><span><Check size={18} /></span><p><b>Your orders, all in one place</b><small>Review purchases and follow delivery progress.</small></p></div>
           </div>
           <div className="accountStoryImage" role="img" aria-label="Warm, calm home interior" />
         </div>
@@ -94,8 +101,9 @@ export default function AccountPage() {
           {userEmail ? (
             <div className="accountFeedback" role="status">
               <span className="accountFeedbackIcon"><Check size={22} /></span>
-              <h3>Welcome to Kivora.</h3>
+              <h3>Welcome{userName ? `, ${userName}` : ' to Kivora'}.</h3>
               <p>You’re signed in as <strong>{userEmail}</strong>.</p>
+              <Link className="primaryButton" href="/account/orders" style={{ margin: '0 auto 12px' }}>View my orders <ArrowRight size={16} /></Link>
               {message && <p>{message}</p>}
               <button type="button" className="primaryButton" onClick={handleSignOut}><LogOut size={16} /> Sign out</button>
             </div>
