@@ -3,11 +3,38 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { ArrowLeft, ArrowRight, CheckCircle2, LockKeyhole, PackageCheck, ShieldCheck, ShoppingBag } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, CreditCard, LockKeyhole, PackageCheck, ShieldCheck, ShoppingBag } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 type CartProduct = { id: number; name: string; category: string; price: number; image: string; description?: string };
+type PaymentMethod = 'cash_on_delivery' | 'razorpay';
+type RazorpayOptions = {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  order_id: string;
+  prefill: { name: string; email: string; contact: string };
+  theme: { color: string };
+  handler: (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) => void;
+  modal: { ondismiss: () => void };
+};
+type RazorpayInstance = { open: () => void; on: (event: string, callback: (response: unknown) => void) => void };
+declare global { interface Window { Razorpay?: new (options: RazorpayOptions) => RazorpayInstance } }
+
 const money = (amount: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
+
+function loadRazorpay(): Promise<boolean> {
+  if (window.Razorpay) return Promise.resolve(true);
+  return new Promise((resolve) => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(Boolean(window.Razorpay));
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+}
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -21,6 +48,7 @@ export default function CheckoutPage() {
   const [address, setAddress] = useState('');
   const [error, setError] = useState('');
   const [signedIn, setSignedIn] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('razorpay');
 
   useEffect(() => {
     try {
@@ -61,6 +89,7 @@ export default function CheckoutPage() {
   async function placeOrder() {
     setBusy(true);
     setError('');
+    let orderId: string | null = null;
     try {
       const { data: authData, error: authError } = await supabase.auth.getUser();
       if (authError || !authData.user) {
@@ -88,18 +117,78 @@ export default function CheckoutPage() {
         subtotal,
         shipping_fee: shipping,
         total,
-        status: 'confirmed',
-        payment_method: 'cash_on_delivery',
+        status: paymentMethod === 'razorpay' ? 'awaiting_payment' : 'confirmed',
+        payment_method: paymentMethod,
         payment_status: 'pending',
       }).select('id, order_number').single();
       if (insertError) throw insertError;
-      window.localStorage.removeItem('kivora-cart');
-      setCart([]);
-      router.push('/account/orders?placed=' + encodeURIComponent(data.order_number));
+      orderId = data.id;
+
+      if (paymentMethod === 'cash_on_delivery') {
+        window.localStorage.removeItem('kivora-cart');
+        setCart([]);
+        router.push('/account/orders?placed=' + encodeURIComponent(data.order_number));
+        return;
+      }
+
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+      if (sessionError || !accessToken) throw new Error('Your sign-in session expired. Please sign in and try again.');
+
+      const gatewayResponse = await fetch('/api/payments/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + accessToken },
+        body: JSON.stringify({ orderId }),
+      });
+      const gateway = await gatewayResponse.json() as { keyId?: string; razorpayOrderId?: string; amount?: number; currency?: string; error?: string };
+      if (!gatewayResponse.ok || !gateway.keyId || !gateway.razorpayOrderId || !gateway.amount) {
+        throw new Error(gateway.error || 'Online payment could not be started. Please try again or choose cash on delivery.');
+      }
+
+      const loaded = await loadRazorpay();
+      if (!loaded || !window.Razorpay) throw new Error('The secure payment window could not load. Please check your connection and try again.');
+
+      const checkout = new window.Razorpay({
+        key: gateway.keyId,
+        amount: gateway.amount,
+        currency: gateway.currency || 'INR',
+        name: 'Kivora',
+        description: 'Order ' + data.order_number,
+        order_id: gateway.razorpayOrderId,
+        prefill: { name: name.trim(), email: authData.user.email ?? email, contact: phone.trim() },
+        theme: { color: '#243d32' },
+        handler: async (response) => {
+          try {
+            const verifyResponse = await fetch('/api/payments/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + accessToken },
+              body: JSON.stringify({ orderId, ...response }),
+            });
+            const verified = await verifyResponse.json() as { error?: string; success?: boolean };
+            if (!verifyResponse.ok || !verified.success) throw new Error(verified.error || 'Payment verification failed.');
+            window.localStorage.removeItem('kivora-cart');
+            setCart([]);
+            router.push('/account/orders?placed=' + encodeURIComponent(data.order_number));
+          } catch (caught) {
+            setError(caught instanceof Error ? caught.message : 'Payment was received but could not be verified. Please contact support before retrying.');
+            setBusy(false);
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            setError('Payment was not completed. Your order is saved as awaiting payment; you can try again or choose cash on delivery.');
+            setBusy(false);
+          },
+        },
+      });
+      checkout.on('payment.failed', () => {
+        setError('Payment failed or was cancelled. Please try again or choose cash on delivery.');
+        setBusy(false);
+      });
+      checkout.open();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'We could not place your order. Please try again.');
       setReviewing(false);
-    } finally {
       setBusy(false);
     }
   }
@@ -131,19 +220,31 @@ export default function CheckoutPage() {
                 <label>Email address<input value={email} readOnly type="email" autoComplete="email" /></label>
                 <label>Phone number <span className="optionalLabel">Optional</span><input value={phone} onChange={(event) => setPhone(event.target.value)} type="tel" autoComplete="tel" placeholder="Contact number for delivery" /></label>
                 <label>Full delivery address<textarea value={address} onChange={(event) => setAddress(event.target.value)} autoComplete="street-address" required rows={4} placeholder="House / flat, street, area, city, state and PIN code" /></label>
-                <div className="paymentChoice"><span className="paymentChoiceIcon"><PackageCheck size={18} /></span><div><b>Cash on delivery</b><small>Payment is collected when your order arrives. Online payment is not connected yet.</small></div><CheckCircle2 size={18} /></div>
+                <div className="commerceSectionHeading"><span>02</span><div><h2>Payment method</h2><p>Choose how you would like to pay.</p></div></div>
+                <label className="paymentChoice">
+                  <input type="radio" name="paymentMethod" value="razorpay" checked={paymentMethod === 'razorpay'} onChange={() => setPaymentMethod('razorpay')} />
+                  <span className="paymentChoiceIcon"><CreditCard size={18} /></span>
+                  <span><b>Pay online</b><small>Credit/debit cards, UPI, net banking and supported wallets via Razorpay.</small></span>
+                  <CheckCircle2 size={18} />
+                </label>
+                <label className="paymentChoice">
+                  <input type="radio" name="paymentMethod" value="cash_on_delivery" checked={paymentMethod === 'cash_on_delivery'} onChange={() => setPaymentMethod('cash_on_delivery')} />
+                  <span className="paymentChoiceIcon"><PackageCheck size={18} /></span>
+                  <span><b>Cash on delivery</b><small>Pay when your order arrives.</small></span>
+                  <CheckCircle2 size={18} />
+                </label>
                 {error && <p className="commerceError" role="alert">{error}</p>}
                 <button className="commercePrimary commerceWide" type="submit" disabled={!cart.length}>Review order <ArrowRight size={16} /></button>
               </form>
             ) : (
               <div className="commerceForm">
-                <div className="commerceSectionHeading"><span>02</span><div><h2>Confirm your order</h2><p>Check these details before you place it.</p></div></div>
+                <div className="commerceSectionHeading"><span>03</span><div><h2>Confirm your order</h2><p>Check these details before you place it.</p></div></div>
                 <div className="reviewDetail"><small>DELIVER TO</small><strong>{name}</strong><span>{phone || 'No phone number added'}</span><span>{email}</span><p>{address}</p><button type="button" className="commerceTextButton" onClick={() => setReviewing(false)}>Edit delivery details</button></div>
-                <div className="reviewDetail"><small>PAYMENT</small><strong>Cash on delivery</strong><span>Pay when the package arrives.</span></div>
-                <p className="commerceConfirmCopy">By choosing “Place order”, you confirm that the delivery details and items above are correct.</p>
+                <div className="reviewDetail"><small>PAYMENT</small><strong>{paymentMethod === 'razorpay' ? 'Online payment via Razorpay' : 'Cash on delivery'}</strong><span>{paymentMethod === 'razorpay' ? 'Choose credit/debit card, UPI, net banking or supported wallets in the secure payment window.' : 'Pay when the package arrives.'}</span></div>
+                <p className="commerceConfirmCopy">By choosing “{paymentMethod === 'razorpay' ? 'Continue to secure payment' : 'Place order'}”, you confirm that the delivery details and items above are correct.</p>
                 {error && <p className="commerceError" role="alert">{error}</p>}
-                <button className="commercePrimary commerceWide" onClick={placeOrder} disabled={busy}>{busy ? 'Placing your order…' : 'Confirm and place order'} <ArrowRight size={16} /></button>
-                <button className="commerceSecondary commerceWide" onClick={() => setReviewing(false)} disabled={busy}>Cancel and go back</button>
+                <button className="commercePrimary commerceWide" onClick={placeOrder} disabled={busy}>{busy ? (paymentMethod === 'razorpay' ? 'Opening secure payment…' : 'Placing your order…') : (paymentMethod === 'razorpay' ? 'Continue to secure payment' : 'Confirm and place order')} <ArrowRight size={16} /></button>
+                <button className="commerceSecondary commerceWide" onClick={() => { setReviewing(false); setError(''); }} disabled={busy}>Cancel and go back</button>
               </div>
             )}
           </section>
@@ -153,7 +254,7 @@ export default function CheckoutPage() {
             <div className="checkoutMoneyRow"><span>Subtotal</span><strong>{money(subtotal)}</strong></div>
             <div className="checkoutMoneyRow"><span>Delivery</span><strong>{shipping === 0 ? 'Free' : money(shipping)}</strong></div>
             <div className="checkoutTotal"><span>Total</span><strong>{money(total)}</strong></div>
-            <p className="checkoutFinePrint"><ShieldCheck size={14} /> Your order is saved to your account. Payment gateway integration is a future step.</p>
+            <p className="checkoutFinePrint"><ShieldCheck size={14} /> Online payments are verified securely before an order is marked paid.</p>
           </aside>
         </div>
       )}
