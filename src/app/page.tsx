@@ -1,25 +1,79 @@
 'use client';
+
 import { useMemo, useState } from 'react';
-import { Search, ShoppingBag, ArrowUpRight, X } from 'lucide-react';
-type Product={id:number;name:string;category:string;price:number;emoji:string;color:string;desc:string};
-const products:Product[]=[
-{id:1,name:'Everyday Carry Tote',category:'Accessories',price:34,emoji:'👜',color:'#e7d4b9',desc:'Roomy, durable, ready for anything.'},
-{id:2,name:'Cloud Knit Pullover',category:'Apparel',price:68,emoji:'🧶',color:'#d6ddd2',desc:'Soft layers for slower mornings.'},
-{id:3,name:'Ceramic Pour-Over',category:'Home',price:42,emoji:'☕',color:'#e5c7a9',desc:'A thoughtful ritual, every day.'},
-{id:4,name:'Sculptural Bottle',category:'Accessories',price:28,emoji:'🫙',color:'#c8d6d5',desc:'Hydration, with a little character.'},
-{id:5,name:'Weekend Sneakers',category:'Apparel',price:89,emoji:'👟',color:'#e1d9cc',desc:'Comfort built for all-day wandering.'},
-{id:6,name:'Desk Companion Lamp',category:'Home',price:56,emoji:'💡',color:'#e8d9a8',desc:'A warm glow for your space.'},
-{id:7,name:'Soft Touch Cap',category:'Accessories',price:24,emoji:'🧢',color:'#d8c7c0',desc:'The finishing touch, no fuss.'},
-{id:8,name:'Linen Blend Shirt',category:'Apparel',price:54,emoji:'👕',color:'#c6d3b9',desc:'Breezy comfort, wherever you go.'}];
-const categories=['All','Accessories','Apparel','Home'];
-export default function Home(){
-const [category,setCategory]=useState('All'),[search,setSearch]=useState(''),[cart,setCart]=useState<Product[]>([]),[cartOpen,setCartOpen]=useState(false);
-const filtered=useMemo(()=>products.filter(p=>(category==='All'||p.category===category)&&p.name.toLowerCase().includes(search.toLowerCase())),[category,search]);
-const total=cart.reduce((s,p)=>s+p.price,0);
-return <><div className="topline">A LITTLE SOMETHING GOOD — FREE SHIPPING ON ORDERS OVER $75</div><div className="wrap"><header className="nav"><a className="logo" href="#" style={{textDecoration:'none',color:'inherit'}}>kivora<span style={{color:'#77934a'}}>.</span></a><nav className="navlinks"><a href="#shop">Shop all</a><a href="#shop">Accessories</a><a href="#shop">Apparel</a><a href="#story">Our story</a></nav><div className="actions"><label style={{display:'flex',alignItems:'center',gap:6}}><Search size={18}/><input aria-label="Search products" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search" style={{width:90,border:0,background:'transparent',outline:0,fontSize:12}}/></label><button className="iconbtn" onClick={()=>setCartOpen(true)} aria-label="Open shopping bag"><ShoppingBag size={19}/><span style={{fontSize:12}}>{cart.length}</span></button></div></header>
-<section className="hero"><div className="heroCopy"><span className="eyebrow">Objects for everyday living</span><h1>Everyday<br/>finds, elevated.</h1><p>Thoughtful essentials for the little moments that make life feel like yours.</p><a className="cta" href="#shop">Explore the collection <ArrowUpRight size={16} style={{marginLeft:10}}/></a></div><div className="heroArt" aria-label="Decorative product still life"><div className="sun"/><div className="shape2"/><div className="productShape"/><div className="shape3"/><span className="artLabel">Made for your everyday</span></div></section>
-<section id="shop"><div className="sectionHead"><div><span className="eyebrow">The good stuff</span><h2>Find your favorite.</h2></div><span style={{fontSize:12,color:'#6b746e'}}>{filtered.length} items</span></div><div className="filters">{categories.map(c=><button key={c} className={'filter '+(category===c?'active':'')} onClick={()=>setCategory(c)}>{c}</button>)}</div><div className="products">{filtered.map(p=><article className="productCard" key={p.id}><div className="productImg" style={{background:p.color}}><span>{p.emoji}</span></div><div className="productInfo"><div><h3>{p.name}</h3><p>{p.desc}</p></div><span className="price">${p.price}</span></div><button className="add" onClick={()=>setCart(c=>[...c,p])}>Add to bag +</button></article>)}</div></section>
-<section id="story" style={{margin:'80px 0',padding:'34px 0',borderTop:'1px solid #dcded6',borderBottom:'1px solid #dcded6',display:'flex',justifyContent:'space-between',gap:30,flexWrap:'wrap'}}><div><span className="eyebrow">A little more intentional</span><h2 style={{fontSize:32,letterSpacing:'-.04em',maxWidth:520}}>Good design should make the everyday feel special.</h2></div><p style={{maxWidth:340,color:'#6b746e',lineHeight:1.7,fontSize:14}}>We curate useful, well-made things that bring a little joy to daily routines. Less noise. More of what you love.</p></section></div>
-<footer className="footer"><div className="wrap footerInner"><div><div className="logo">kivora.</div><p style={{fontSize:12,color:'#d3ddd5'}}>Everyday finds, elevated.</p></div><div style={{fontSize:12,color:'#d3ddd5'}}>© 2026 Kivora. Demo storefront.</div></div></footer>
-{cartOpen&&<div className="cartPanel"><button className="close" onClick={()=>setCartOpen(false)} aria-label="Close bag"><X/></button><h3>Your bag ({cart.length})</h3>{cart.length===0?<p className="empty">Your bag is waiting for something good.</p>:<>{cart.map((p,i)=><div className="cartLine" key={i}><span>{p.name}</span><b>${p.price}</b></div>)}<div className="cartLine"><b>Total</b><b>${total}</b></div><p className="empty">Checkout is not configured in this demo.</p></>}</div>}</>;
+import { ArrowRight, ArrowUpRight, Check, ChevronDown, Heart, Menu, Search, ShoppingBag, Sparkles, X } from 'lucide-react';
+
+type Product = { id: number; name: string; category: string; price: number; image: string; tag?: string; description: string };
+
+const products: Product[] = [
+  { id: 1, name: 'Everyday Carry Tote', category: 'Accessories', price: 48, image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=900&q=85', tag: 'Bestseller', description: 'A roomy, considered companion for every day.' },
+  { id: 2, name: 'Cloud Knit Sweater', category: 'Fashion', price: 78, image: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=900&q=85', tag: 'New in', description: 'Soft layers for slower mornings.' },
+  { id: 3, name: 'Studio Headphones', category: 'Technology', price: 96, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=900&q=85', description: 'Immersive sound, beautifully simple.' },
+  { id: 4, name: 'Sculpted Water Bottle', category: 'Wellness', price: 32, image: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=900&q=85', description: 'A little reminder to slow down and hydrate.' },
+  { id: 5, name: 'Weekend Sneakers', category: 'Fashion', price: 89, image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=85', tag: 'Customer favorite', description: 'Comfort made for all-day wandering.' },
+  { id: 6, name: 'Warm Glow Table Lamp', category: 'Home', price: 64, image: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=900&q=85', description: 'A softer kind of light for your space.' },
+  { id: 7, name: 'Minimal Timepiece', category: 'Accessories', price: 112, image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=900&q=85', description: 'Timeless design, down to the details.' },
+  { id: 8, name: 'Daily Ritual Skincare', category: 'Wellness', price: 38, image: 'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?auto=format&fit=crop&w=900&q=85', tag: 'Feel-good find', description: 'A simple, feel-good moment for your routine.' },
+  { id: 9, name: 'Pocket Speaker', category: 'Technology', price: 58, image: 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?auto=format&fit=crop&w=900&q=85', description: 'Bring your favorite sound wherever you go.' },
+  { id: 10, name: 'Sunday Sunglasses', category: 'Accessories', price: 42, image: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=900&q=85', description: 'An easy finishing touch for sunny days.' },
+  { id: 11, name: 'Ceramic Pour-Over', category: 'Home', price: 36, image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=85', description: 'Make your everyday coffee feel like a ritual.' },
+  { id: 12, name: 'Carry-All Wallet', category: 'Accessories', price: 34, image: 'https://images.unsplash.com/photo-1627123424574-724758594e93?auto=format&fit=crop&w=900&q=85', description: 'Small, useful, and thoughtfully made.' },
+];
+
+const categories = ['All', 'Fashion', 'Home', 'Technology', 'Accessories', 'Wellness'];
+const money = (amount: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(amount);
+
+export default function Home() {
+  const [category, setCategory] = useState('All');
+  const [search, setSearch] = useState('');
+  const [cart, setCart] = useState<Product[]>([]);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [mobileMenu, setMobileMenu] = useState(false);
+  const [favorites, setFavorites] = useState<number[]>([]);
+  const [added, setAdded] = useState<number | null>(null);
+
+  const filtered = useMemo(() => products.filter((p) => (category === 'All' || p.category === category) && (p.name + ' ' + p.description + ' ' + p.category).toLowerCase().includes(search.toLowerCase())), [category, search]);
+  const total = cart.reduce((sum, p) => sum + p.price, 0);
+  const addToCart = (product: Product) => { setCart((current) => [...current, product]); setAdded(product.id); window.setTimeout(() => setAdded((current) => current === product.id ? null : current), 1400); };
+  const scrollToShop = () => { document.getElementById('shop')?.scrollIntoView({ behavior: 'smooth' }); setMobileMenu(false); };
+
+  return (
+    <>
+      <div className="announcement"><Sparkles size={13} /> A LITTLE SOMETHING GOOD <span className="announcementDot">•</span> Complimentary shipping on orders over $75</div>
+      <div className="siteWrap">
+        <header className="nav">
+          <button className="mobileMenu iconButton" onClick={() => setMobileMenu(!mobileMenu)} aria-label="Toggle navigation">{mobileMenu ? <X size={21} /> : <Menu size={21} />}</button>
+          <a className="logo" href="#" aria-label="Kivora home">kivora<span>.</span></a>
+          <nav className={mobileMenu ? 'navLinks navLinksOpen' : 'navLinks'} aria-label="Main navigation">
+            <a href="#shop" onClick={() => setMobileMenu(false)}>Shop all</a><a href="#shop" onClick={() => { setCategory('Fashion'); setMobileMenu(false); }}>Fashion</a><a href="#shop" onClick={() => { setCategory('Home'); setMobileMenu(false); }}>Home & living</a><a href="#story" onClick={() => setMobileMenu(false)}>Our story</a>
+          </nav>
+          <div className="navActions">
+            <label className="searchBox"><Search size={17} /><input aria-label="Search products" value={search} onChange={(e) => { setSearch(e.target.value); document.getElementById('shop')?.scrollIntoView({ behavior: 'smooth' }); }} placeholder="Search" /></label>
+            <button className="bagButton" onClick={() => setCartOpen(true)} aria-label={`Open shopping bag, ${cart.length} items`}><ShoppingBag size={19} /><span>Bag</span><span className="bagCount">{cart.length}</span></button>
+          </div>
+        </header>
+
+        <main>
+          <section className="hero">
+            <div className="heroCopy"><span className="eyebrow"><span className="eyebrowLine" /> THE ART OF EVERYDAY</span><h1>Good things.<br /><em>Better living.</em></h1><p>Thoughtfully picked pieces for the way you live, work, unwind and go.</p><button className="primaryButton" onClick={scrollToShop}>Explore the collection <ArrowUpRight size={17} /></button><div className="heroNote"><span className="avatarStack"><i>✦</i><i>♡</i><i>✳</i></span><span>Loved by people who love the little things.</span></div></div>
+            <div className="heroVisual"><img className="heroPhoto" src="https://images.unsplash.com/photo-1490312278390-ab64016e0aa9?auto=format&fit=crop&w=1400&q=90" alt="Warm, curated modern living space" /><div className="heroPhotoShade" /><div className="heroStamp"><span>THE KIVORA EDIT</span><strong>Made for<br />your everyday.</strong><ArrowUpRight size={19} /></div><div className="floatingNote"><span className="floatingIcon"><Sparkles size={18} /></span><span><b>Little things, big joy</b><small>Find your new favorite</small></span></div><span className="heroIndex">01 / 04 — THE EVERYDAY EDIT</span></div>
+          </section>
+
+          <section className="valueStrip" aria-label="Store benefits"><div><span className="valueIcon">✳</span><span><b>Thoughtfully chosen</b><small>Quality over clutter</small></span></div><div><span className="valueIcon">↗</span><span><b>Made for real life</b><small>Useful, beautiful essentials</small></span></div><div><span className="valueIcon">♡</span><span><b>A little more joy</b><small>Good things, good feelings</small></span></div><div><span className="valueIcon">◎</span><span><b>Easy everyday shopping</b><small>Free shipping over $75</small></span></div></section>
+
+          <section className="shopSection" id="shop"><div className="sectionHeading"><div><span className="eyebrow"><span className="eyebrowLine" /> THE GOOD STUFF</span><h2>Find your <em>favorite.</em></h2><p>Little upgrades for every corner of your life.</p></div><button className="textLink" onClick={() => { setCategory('All'); setSearch(''); }}>View all products <ArrowRight size={16} /></button></div>
+            <div className="shopToolbar"><div className="categoryFilters" aria-label="Filter products">{categories.map((c) => <button key={c} className={category === c ? 'filterPill filterActive' : 'filterPill'} onClick={() => setCategory(c)}>{c}</button>)}</div><span className="resultCount">{filtered.length} pieces</span></div>
+            {filtered.length ? <div className="productGrid">{filtered.map((p, index) => <article className="productCard" key={p.id}><div className="productPhotoWrap"><img className="productPhoto" src={p.image} alt={p.name} loading={index > 3 ? 'lazy' : 'eager'} /><span className="productCategory">{p.category}</span>{p.tag && <span className="productTag">{p.tag}</span>}<button className={favorites.includes(p.id) ? 'favoriteButton favorited' : 'favoriteButton'} onClick={() => setFavorites((current) => current.includes(p.id) ? current.filter((id) => id !== p.id) : [...current, p.id])} aria-label={favorites.includes(p.id) ? `Remove ${p.name} from favorites` : `Add ${p.name} to favorites`}><Heart size={17} fill={favorites.includes(p.id) ? 'currentColor' : 'none'} /></button><button className="quickAdd" onClick={() => addToCart(p)}>{added === p.id ? <><Check size={15} /> Added to bag</> : <>Quick add <span>+</span></>}</button></div><div className="productDetails"><div><h3>{p.name}</h3><p>{p.description}</p></div><strong>{money(p.price)}</strong></div></article>)}</div> : <div className="noResults"><Search size={24} /><h3>No little treasures found</h3><p>Try another search or explore all of our finds.</p><button className="primaryButton" onClick={() => { setSearch(''); setCategory('All'); }}>Show all products</button></div>}
+          </section>
+
+          <section className="editorial" id="story"><div className="editorialPhoto"><img src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1200&q=85" alt="Thoughtfully styled home with warm natural textures" loading="lazy" /><span className="photoCaption">SLOW DOWN. LOOK CLOSER.</span></div><div className="editorialCopy"><span className="eyebrow"><span className="eyebrowLine" /> A LITTLE MORE INTENTIONAL</span><h2>Make room for<br /><em>the good stuff.</em></h2><p>We believe the things you bring into your life should earn their place. So we look for thoughtful details, everyday usefulness and the kind of design that makes you feel something.</p><p>Less noise. More meaning. A little more Kivora.</p><button className="textLink" onClick={scrollToShop}>Get to know the collection <ArrowRight size={16} /></button></div></section>
+
+          <section className="newsletter"><span className="eyebrow">GOOD THINGS, OCCASIONALLY</span><h2>A little joy in your inbox.</h2><p>New finds, thoughtful ideas and first looks at what's next.</p><form onSubmit={(e) => { e.preventDefault(); alert('Thanks for your interest! Newsletter sign-up will be connected in a future update.'); }} className="newsletterForm"><input type="email" aria-label="Email address" placeholder="Your email address" required /><button type="submit" aria-label="Sign up for newsletter"><ArrowRight size={18} /></button></form><small>No noise, just the good stuff.</small></section>
+        </main>
+      </div>
+      <footer className="footer"><div className="siteWrap"><div className="footerTop"><div><a className="logo footerLogo" href="#">kivora<span>.</span></a><p>Everyday finds, elevated.</p></div><div className="footerLinks"><a href="#shop">Shop all</a><a href="#story">Our story</a><a href="mailto:hello@kivora.example">Contact</a></div><div className="footerSignoff">Made for the life you love. <span>✳</span></div></div><div className="footerBottom"><span>© 2026 Kivora. Demo storefront.</span><span>Thoughtfully found. Everyday loved.</span></div></div></footer>
+
+      {cartOpen && <div className="drawerBackdrop" onClick={() => setCartOpen(false)}><aside className="cartDrawer" role="dialog" aria-modal="true" aria-label="Shopping bag" onClick={(e) => e.stopPropagation()}><div className="drawerHeader"><div><span className="eyebrow">YOUR LITTLE FINDS</span><h2>Your bag <span>({cart.length})</span></h2></div><button className="iconButton" onClick={() => setCartOpen(false)} aria-label="Close shopping bag"><X size={21} /></button></div>{cart.length === 0 ? <div className="emptyBag"><span className="emptyBagIcon"><ShoppingBag size={27} /></span><h3>Your bag is taking a little break.</h3><p>It's ready when you find something you love.</p><button className="primaryButton" onClick={() => { setCartOpen(false); scrollToShop(); }}>Explore the collection <ArrowRight size={16} /></button></div> : <><div className="cartItems">{cart.map((p, index) => <div className="cartItem" key={`${p.id}-${index}`}><img src={p.image} alt="" /><div><b>{p.name}</b><small>{p.category}</small><button className="removeItem" onClick={() => setCart((current) => current.filter((_, i) => i !== index))}>Remove</button></div><strong>{money(p.price)}</strong></div>)}</div><div className="cartSummary"><div className="shippingMessage">{total >= 75 ? 'You unlocked complimentary shipping!' : `You're ${money(75 - total)} away from complimentary shipping.`}</div><div className="shippingTrack"><span style={{ width: `${Math.min(100, (total / 75) * 100)}%` }} /></div><div className="cartTotal"><span>Subtotal</span><strong>{money(total)}</strong></div><p>Shipping and taxes calculated at checkout.</p><button className="checkoutButton" onClick={() => alert('Checkout will be connected in a future phase. Your bag is working!')}>Continue to checkout <ArrowRight size={17} /></button><button className="continueShopping" onClick={() => setCartOpen(false)}>Keep browsing</button></div></>}</aside></div>}
+    </>
+  );
 }
