@@ -28,6 +28,7 @@ export default function ProductDetailPage() {
   const [added, setAdded] = useState(false);
 
   function addToBag() {
+    if (!product) return;
     try {
       const saved = window.localStorage.getItem('kivora-cart');
       const current = saved ? JSON.parse(saved) as Array<{ id: number; name: string; category: string; price: number; image: string; description: string }> : [];
