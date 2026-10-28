@@ -7,7 +7,7 @@ import { ArrowLeft, ArrowRight, CheckCircle2, CreditCard, LockKeyhole, PackageCh
 import { supabase } from '@/lib/supabase';
 
 type CartProduct = { id: number; name: string; category: string; price: number; image: string; description?: string };
-type PaymentMethod = 'cash_on_delivery' | 'razorpay';
+type PaymentMethod = 'cash_on_delivery' | 'razorpay' | 'demo';
 type RazorpayOptions = {
   key: string;
   amount: number;
@@ -124,7 +124,7 @@ export default function CheckoutPage() {
       if (insertError) throw insertError;
       orderId = data.id;
 
-      if (paymentMethod === 'cash_on_delivery') {
+      if (paymentMethod === 'cash_on_delivery' || paymentMethod === 'demo') {
         window.localStorage.removeItem('kivora-cart');
         setCart([]);
         router.push('/account/orders?placed=' + encodeURIComponent(data.order_number));
@@ -231,6 +231,12 @@ export default function CheckoutPage() {
                   <CheckCircle2 size={18} />
                 </label>
                 <label className="paymentChoice">
+                  <input type="radio" name="paymentMethod" value="demo" checked={paymentMethod === 'demo'} onChange={() => setPaymentMethod('demo')} />
+                  <span className="paymentChoiceIcon"><CreditCard size={18} /></span>
+                  <span><b>Demo payment (test only)</b><small>Place a test order without charging money. This does not verify a real payment.</small></span>
+                  <CheckCircle2 size={18} />
+                </label>
+                <label className="paymentChoice">
                   <input type="radio" name="paymentMethod" value="cash_on_delivery" checked={paymentMethod === 'cash_on_delivery'} onChange={() => setPaymentMethod('cash_on_delivery')} />
                   <span className="paymentChoiceIcon"><PackageCheck size={18} /></span>
                   <span><b>Cash on delivery</b><small>Pay when your order arrives.</small></span>
@@ -243,10 +249,10 @@ export default function CheckoutPage() {
               <div className="commerceForm">
                 <div className="commerceSectionHeading"><span>03</span><div><h2>Confirm your order</h2><p>Check these details before you place it.</p></div></div>
                 <div className="reviewDetail"><small>DELIVER TO</small><strong>{name}</strong><span>{phone || 'No phone number added'}</span><span>{email}</span><p>{address}</p><button type="button" className="commerceTextButton" onClick={() => setReviewing(false)}>Edit delivery details</button></div>
-                <div className="reviewDetail"><small>PAYMENT</small><strong>{paymentMethod === 'razorpay' ? 'Online payment via Razorpay' : 'Cash on delivery'}</strong><span>{paymentMethod === 'razorpay' ? 'Choose credit/debit card, UPI, net banking or supported wallets in the secure payment window.' : 'Pay when the package arrives.'}</span></div>
+                <div className="reviewDetail"><small>PAYMENT</small><strong>{paymentMethod === 'razorpay' ? 'Online payment via Razorpay' : paymentMethod === 'demo' ? 'Demo payment — no money charged' : 'Cash on delivery'}</strong><span>{paymentMethod === 'razorpay' ? 'Choose credit/debit card, UPI, net banking or supported wallets in the secure payment window.' : paymentMethod === 'demo' ? 'Testing only. No payment is processed and this order will remain unpaid.' : 'Pay when the package arrives.'}</span></div>
                 <p className="commerceConfirmCopy">By choosing “{paymentMethod === 'razorpay' ? 'Continue to secure payment' : 'Place order'}”, you confirm that the delivery details and items above are correct.</p>
                 {error && <p className="commerceError" role="alert">{error}</p>}
-                <button className="commercePrimary commerceWide" onClick={placeOrder} disabled={busy}>{busy ? (paymentMethod === 'razorpay' ? 'Opening secure payment…' : 'Placing your order…') : (paymentMethod === 'razorpay' ? 'Continue to secure payment' : 'Confirm and place order')} <ArrowRight size={16} /></button>
+                <button className="commercePrimary commerceWide" onClick={placeOrder} disabled={busy}>{busy ? (paymentMethod === 'razorpay' ? 'Opening secure payment…' : 'Placing your order…') : (paymentMethod === 'razorpay' ? 'Continue to secure payment' : paymentMethod === 'demo' ? 'Place demo order (no charge)' : 'Confirm and place order')} <ArrowRight size={16} /></button>
                 <button className="commerceSecondary commerceWide" onClick={() => { setReviewing(false); setError(''); }} disabled={busy}>Cancel and go back</button>
               </div>
             )}
