@@ -78,7 +78,7 @@ export default function CheckoutPage() {
       code,
       name: names.of(code) ?? code,
       dial: getCountryCallingCode(code),
-    })).filter((country) => !query || country.name.toLowerCase().includes(query) || country.code.toLowerCase().includes(query) || ('+' + country.dial).includes(query))
+    })).filter((country) => country.code === countryIso || !query || country.name.toLowerCase().includes(query) || country.code.toLowerCase().includes(query) || ('+' + country.dial).includes(query))
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [countrySearch]);
   const selectedCountry = countryOptions.find((country) => country.code === countryIso) ?? {
@@ -247,7 +247,7 @@ export default function CheckoutPage() {
                 <label>Phone number <span className="optionalLabel">Optional</span>
                   <input value={countrySearch} onChange={(event) => setCountrySearch(event.target.value)} type="search" placeholder="Search country or calling code (e.g. India, +91)" aria-label="Search country calling code" />
                   <div className="phoneInputGroup">
-                    <select value={countryIso} onChange={(event) => setCountryIso(event.target.value)} aria-label="Country calling code">
+                    <select value={countryIso} onChange={(event) => { setCountryIso(event.target.value); setCountrySearch(''); }} aria-label="Country calling code">
                       {countryOptions.map((country) => <option key={country.code} value={country.code}>{country.name} (+{country.dial})</option>)}
                     </select>
                     <input value={phone} onChange={(event) => setPhone(event.target.value.replace(/[^\d\s()-]/g, '').slice(0, 20))} type="tel" autoComplete="tel-national" placeholder="Mobile number" />
