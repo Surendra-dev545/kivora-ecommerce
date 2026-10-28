@@ -22,6 +22,7 @@ export default function AccountPage() {
   const [sendingFeedback, setSendingFeedback] = useState(false);
 
   useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('mode') === 'signin') setMode('signin');
     let mounted = true;
     supabase.auth.getSession().then(({ data }) => {
       if (mounted) {
