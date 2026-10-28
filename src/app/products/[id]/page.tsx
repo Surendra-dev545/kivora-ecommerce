@@ -30,7 +30,7 @@ export default function ProductDetailPage() {
   function addToBag() {
     try {
       const saved = window.localStorage.getItem('kivora-cart');
-      const current = saved ? JSON.parse(saved) as typeof products : [];
+      const current = saved ? JSON.parse(saved) as Array<{ id: number; name: string; category: string; price: number; image: string; description: string }> : [];
       current.push({ id: product.id, name: product.name, category: product.category, price: product.price, image: product.image, description: product.description });
       window.localStorage.setItem('kivora-cart', JSON.stringify(current));
       setAdded(true);
