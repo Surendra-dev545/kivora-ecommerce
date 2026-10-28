@@ -109,3 +109,27 @@ a{color:inherit}
 @media(max-width:900px){.accountLayout{gap:35px;grid-template-columns:1fr 1fr}.accountStoryImage{height:100px}.accountFormPanel{padding:25px}}
 @media(max-width:700px){.accountPage{padding:0 18px}.accountHeader{height:69px}.accountHeaderNote{font-size:7px;letter-spacing:.04em;gap:4px}.accountHeader .detailLogo{font-size:25px}.accountLayout{grid-template-columns:1fr;gap:28px;padding:35px 0 45px}.accountStory h1{font-size:48px;margin:19px 0 14px}.accountStory>p{font-size:11px}.accountBenefits{gap:14px;margin:22px 0}.accountStoryImage{display:none}.accountFormPanel{justify-self:stretch;max-width:none;padding:25px 20px}.accountFormHeading h2{font-size:31px}.accountTabs{margin:22px 0 20px}.accountFooter{font-size:8px;gap:10px;flex-wrap:wrap}.accountFooter>span:last-child{display:none}.accountFooter .detailLogo{font-size:21px}}
 @media(max-width:360px){.accountHeader .backLink{font-size:8px}.accountHeaderNote{font-size:6px}.accountFooter{justify-content:space-between}}
+
+
+.accountAuthError,
+.accountAuthMessage {
+  margin: 0;
+  padding: 11px 13px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.accountAuthError {
+  color: #9f2929;
+  background: #fff0ee;
+  border: 1px solid #f3d0ca;
+}
+.accountAuthMessage {
+  color: #245d46;
+  background: #edf8f1;
+  border: 1px solid #cfe8d8;
+}
+.accountSubmit:disabled {
+  cursor: wait;
+  opacity: .7;
+}
