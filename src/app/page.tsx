@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { ArrowRight, ArrowUpRight, Check, ChevronDown, Heart, Menu, Search, ShoppingBag, Sparkles, X } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Check, ChevronDown, Heart, Menu, Search, ShoppingBag, Sparkles, UserRound, X } from 'lucide-react';
 
 type Product = { id: number; name: string; category: string; price: number; image: string; tag?: string; description: string };
 
@@ -49,7 +49,7 @@ export default function Home() {
           </nav>
           <div className="navActions">
             <label className="searchBox"><Search size={17} /><input aria-label="Search products" value={search} onChange={(e) => { setSearch(e.target.value); document.getElementById('shop')?.scrollIntoView({ behavior: 'smooth' }); }} placeholder="Search" /></label>
-            <button className="bagButton" onClick={() => setCartOpen(true)} aria-label={`Open shopping bag, ${cart.length} items`}><ShoppingBag size={19} /><span>Bag</span><span className="bagCount">{cart.length}</span></button>
+            <a className="accountLink" href="/account" aria-label="Your account"><UserRound size={18} /><span>Account</span></a><button className="bagButton" onClick={() => setCartOpen(true)} aria-label={`Open shopping bag, ${cart.length} items`}><ShoppingBag size={19} /><span>Bag</span><span className="bagCount">{cart.length}</span></button>
           </div>
         </header>
 
