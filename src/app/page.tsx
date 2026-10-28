@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, ArrowUpRight, Check, ChevronDown, Heart, Menu, Search, ShoppingBag, Sparkles, UserRound, X } from 'lucide-react';
 
 type Product = { id: number; name: string; category: string; price: number; image: string; tag?: string; description: string };
@@ -27,10 +27,26 @@ export default function Home() {
   const [category, setCategory] = useState('All');
   const [search, setSearch] = useState('');
   const [cart, setCart] = useState<Product[]>([]);
+  const [cartLoaded, setCartLoaded] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [favorites, setFavorites] = useState<number[]>([]);
   const [added, setAdded] = useState<number | null>(null);
+
+  useEffect(() => {
+    try {
+      const savedCart = window.localStorage.getItem('kivora-cart');
+      if (savedCart) setCart(JSON.parse(savedCart) as Product[]);
+    } catch {
+      window.localStorage.removeItem('kivora-cart');
+    } finally {
+      setCartLoaded(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (cartLoaded) window.localStorage.setItem('kivora-cart', JSON.stringify(cart));
+  }, [cart, cartLoaded]);
 
   const filtered = useMemo(() => products.filter((p) => (category === 'All' || p.category === category) && (p.name + ' ' + p.description + ' ' + p.category).toLowerCase().includes(search.toLowerCase())), [category, search]);
   const total = cart.reduce((sum, p) => sum + p.price, 0);
