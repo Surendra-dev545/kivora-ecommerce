@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { ArrowLeft, ArrowRight, CheckCircle2, CreditCard, LockKeyhole, PackageCheck, ShieldCheck, ShoppingBag } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { getCountries, getCountryCallingCode, isValidPhoneNumber } from 'libphonenumber-js';
 
 type CartProduct = { id: number; name: string; category: string; price: number; image: string; description?: string };
 type PaymentMethod = 'cash_on_delivery' | 'razorpay' | 'demo';
@@ -45,6 +46,8 @@ export default function CheckoutPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [countryIso, setCountryIso] = useState('IN');
+  const [countrySearch, setCountrySearch] = useState('');
   const [address, setAddress] = useState('');
   const [error, setError] = useState('');
   const [signedIn, setSignedIn] = useState(false);
@@ -68,6 +71,22 @@ export default function CheckoutPage() {
     });
   }, []);
 
+  const countryOptions = useMemo(() => {
+    const names = new Intl.DisplayNames(['en'], { type: 'region' });
+    const query = countrySearch.trim().toLowerCase().replace(/\s/g, '');
+    return getCountries().map((code) => ({
+      code,
+      name: names.of(code) ?? code,
+      dial: getCountryCallingCode(code),
+    })).filter((country) => !query || country.name.toLowerCase().includes(query) || country.code.toLowerCase().includes(query) || ('+' + country.dial).includes(query))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [countrySearch]);
+  const selectedCountry = countryOptions.find((country) => country.code === countryIso) ?? {
+    code: countryIso,
+    name: countryIso,
+    dial: getCountryCallingCode(countryIso as never),
+  };
+
   const subtotal = useMemo(() => cart.reduce((sum, item) => sum + item.price, 0), [cart]);
   const shipping = subtotal === 0 || subtotal >= 4999 ? 0 : 199;
   const total = subtotal + shipping;
@@ -81,6 +100,10 @@ export default function CheckoutPage() {
     }
     if (!cart.length) {
       setError('Your bag is empty. Add a product before checking out.');
+      return;
+    }
+    if (phone.trim() && !isValidPhoneNumber('+' + selectedCountry.dial + phone.replace(/\D/g, ''))) {
+      setError('Enter a valid phone number for the selected country code.');
       return;
     }
     setReviewing(true);
@@ -111,7 +134,7 @@ export default function CheckoutPage() {
         order_number: orderNumber,
         customer_name: name.trim(),
         customer_email: authData.user.email ?? email,
-        customer_phone: phone.trim() || null,
+        customer_phone: phone.trim() ? '+' + selectedCountry.dial + ' ' + phone.replace(/\D/g, '') : null,
         shipping_address: address.trim(),
         items,
         subtotal,
@@ -155,7 +178,7 @@ export default function CheckoutPage() {
         name: 'Kivora',
         description: 'Order ' + data.order_number,
         order_id: gateway.razorpayOrderId,
-        prefill: { name: name.trim(), email: authData.user.email ?? email, contact: phone.trim() },
+        prefill: { name: name.trim(), email: authData.user.email ?? email, contact: phone.trim() ? '+' + selectedCountry.dial + phone.replace(/\D/g, '') : '' },
         theme: { color: '#243d32' },
         handler: async (response) => {
           try {
@@ -221,7 +244,15 @@ export default function CheckoutPage() {
                 <div className="commerceSectionHeading"><span>01</span><div><h2>Delivery details</h2><p>Where should we send your order?</p></div></div>
                 <label>Full name<input value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" required placeholder="Name for delivery" /></label>
                 <label>Email address<input value={email} readOnly type="email" autoComplete="email" /></label>
-                <label>Phone number <span className="optionalLabel">Optional</span><input value={phone} onChange={(event) => setPhone(event.target.value)} type="tel" autoComplete="tel" placeholder="Contact number for delivery" /></label>
+                <label>Phone number <span className="optionalLabel">Optional</span>
+                  <input value={countrySearch} onChange={(event) => setCountrySearch(event.target.value)} type="search" placeholder="Search country or calling code (e.g. India, +91)" aria-label="Search country calling code" />
+                  <div className="phoneInputGroup">
+                    <select value={countryIso} onChange={(event) => setCountryIso(event.target.value)} aria-label="Country calling code">
+                      {countryOptions.map((country) => <option key={country.code} value={country.code}>{country.name} (+{country.dial})</option>)}
+                    </select>
+                    <input value={phone} onChange={(event) => setPhone(event.target.value.replace(/[^\d\s()-]/g, '').slice(0, 20))} type="tel" autoComplete="tel-national" placeholder="Mobile number" />
+                  </div>
+                </label>
                 <label>Full delivery address<textarea value={address} onChange={(event) => setAddress(event.target.value)} autoComplete="street-address" required rows={4} placeholder="House / flat, street, area, city, state and PIN code" /></label>
                 <div className="commerceSectionHeading"><span>02</span><div><h2>Payment method</h2><p>Choose how you would like to pay.</p></div></div>
                 <label className="paymentChoice">
@@ -248,7 +279,7 @@ export default function CheckoutPage() {
             ) : (
               <div className="commerceForm">
                 <div className="commerceSectionHeading"><span>03</span><div><h2>Confirm your order</h2><p>Check these details before you place it.</p></div></div>
-                <div className="reviewDetail"><small>DELIVER TO</small><strong>{name}</strong><span>{phone || 'No phone number added'}</span><span>{email}</span><p>{address}</p><button type="button" className="commerceTextButton" onClick={() => setReviewing(false)}>Edit delivery details</button></div>
+                <div className="reviewDetail"><small>DELIVER TO</small><strong>{name}</strong><span>{phone ? '+' + selectedCountry.dial + ' ' + phone : 'No phone number added'}</span><span>{email}</span><p>{address}</p><button type="button" className="commerceTextButton" onClick={() => setReviewing(false)}>Edit delivery details</button></div>
                 <div className="reviewDetail"><small>PAYMENT</small><strong>{paymentMethod === 'razorpay' ? 'Online payment via Razorpay' : paymentMethod === 'demo' ? 'Demo payment — no money charged' : 'Cash on delivery'}</strong><span>{paymentMethod === 'razorpay' ? 'Choose credit/debit card, UPI, net banking or supported wallets in the secure payment window.' : paymentMethod === 'demo' ? 'Testing only. No payment is processed and this order will remain unpaid.' : 'Pay when the package arrives.'}</span></div>
                 <p className="commerceConfirmCopy">By choosing “{paymentMethod === 'razorpay' ? 'Continue to secure payment' : 'Place order'}”, you confirm that the delivery details and items above are correct.</p>
                 {error && <p className="commerceError" role="alert">{error}</p>}
