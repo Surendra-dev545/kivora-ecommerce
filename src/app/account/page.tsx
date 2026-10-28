@@ -1,11 +1,14 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState, type FormEvent } from 'react';
 import { ArrowLeft, ArrowRight, Check, LockKeyhole, Mail, ShieldCheck, Sparkles, UserRound, LogOut, MapPin, Package, MessageSquare, Save, Star } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 export default function AccountPage() {
+  const router = useRouter();
+  const [accessType, setAccessType] = useState<'customer' | 'admin'>('customer');
   const [mode, setMode] = useState<'signin' | 'create'>('create');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -22,7 +25,9 @@ export default function AccountPage() {
   const [sendingFeedback, setSendingFeedback] = useState(false);
 
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get('mode') === 'signin') setMode('signin');
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('mode') === 'signin') setMode('signin');
+    if (params.get('access') === 'admin') { setAccessType('admin'); setMode('signin'); }
     let mounted = true;
     supabase.auth.getSession().then(({ data }) => {
       if (mounted) {
@@ -69,6 +74,7 @@ export default function AccountPage() {
         setUserEmail(data.user.email ?? email);
         setUserName((data.user.user_metadata?.full_name as string | undefined) ?? null);
         setAddress((data.user.user_metadata?.delivery_address as string | undefined) ?? '');
+        if (accessType === 'admin') { router.push('/admin/orders'); return; }
         setMessage('You are signed in. Welcome back!');
       }
       setPassword('');
@@ -152,18 +158,19 @@ export default function AccountPage() {
               <Link className="accountAdminLink" href="/admin/orders">Store admin <ArrowRight size={14} /></Link>
             </div>
           ) : <>
-            <div className="accountTabs" role="tablist" aria-label="Account access">
+            <label className="accountAccessChoice">Account type<select value={accessType} onChange={(event) => { const next = event.target.value as 'customer' | 'admin'; setAccessType(next); if (next === 'admin') setMode('signin'); setError(''); setMessage(''); }}><option value="customer">Customer</option><option value="admin">Admin</option></select></label>
+          {accessType === 'customer' ? <div className="accountTabs" role="tablist" aria-label="Account access">
               <button type="button" role="tab" aria-selected={mode === 'create'} className={mode === 'create' ? 'accountTab accountTabActive' : 'accountTab'} onClick={() => { setMode('create'); setMessage(''); setError(''); }}>Create account</button>
               <button type="button" role="tab" aria-selected={mode === 'signin'} className={mode === 'signin' ? 'accountTab accountTabActive' : 'accountTab'} onClick={() => { setMode('signin'); setMessage(''); setError(''); }}>Sign in</button>
-            </div>
+            </div> : <p className="accountAuthMessage">Admin sign-in · Authorized account only</p>}
             <form className="accountForm" onSubmit={handleSubmit}>
-              {mode === 'create' && <label>Full name<div className="accountInputWrap"><UserRound size={16} /><input name="name" type="text" placeholder="Your name" autoComplete="name" value={name} onChange={(event) => setName(event.target.value)} required /></div></label>}
+              {accessType === 'customer' && mode === 'create' && <label>Full name<div className="accountInputWrap"><UserRound size={16} /><input name="name" type="text" placeholder="Your name" autoComplete="name" value={name} onChange={(event) => setName(event.target.value)} required /></div></label>}
               <label>Email address<div className="accountInputWrap"><Mail size={16} /><input name="email" type="email" placeholder="you@example.com" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></div></label>
-              <label>Password<div className="accountInputWrap"><LockKeyhole size={16} /><input name="password" type="password" placeholder="At least 8 characters" minLength={8} autoComplete={mode === 'create' ? 'new-password' : 'current-password'} value={password} onChange={(event) => setPassword(event.target.value)} required /></div></label>
+              <label>Password<div className="accountInputWrap"><LockKeyhole size={16} /><input name="password" type="password" placeholder="At least 8 characters" minLength={8} autoComplete={accessType === 'customer' && mode === 'create' ? 'new-password' : 'current-password'} value={password} onChange={(event) => setPassword(event.target.value)} required /></div></label>
               {error && <p className="accountAuthError" role="alert">{error}</p>}
               {message && <p className="accountAuthMessage" role="status">{message}</p>}
-              {mode === 'create' && <p className="accountFinePrint">By continuing, you agree to our terms and privacy policy. These links will be added when account services are connected.</p>}
-              <button className="accountSubmit" type="submit" disabled={busy}>{busy ? 'Please wait…' : mode === 'create' ? 'Create account' : 'Sign in'} {!busy && <ArrowRight size={17} />}</button>
+              {accessType === 'customer' && mode === 'create' && <p className="accountFinePrint">By continuing, you agree to our terms and privacy policy. These links will be added when account services are connected.</p>}
+              <button className="accountSubmit" type="submit" disabled={busy}>{busy ? 'Please wait…' : accessType === 'admin' ? 'Admin sign in' : mode === 'create' ? 'Create account' : 'Sign in'} {!busy && <ArrowRight size={17} />}</button>
               <p className="accountDemoNotice"><ShieldCheck size={15} /> Secure sign-in powered by Supabase.</p>
             </form>
           </>}
