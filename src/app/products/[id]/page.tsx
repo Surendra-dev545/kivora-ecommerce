@@ -27,6 +27,19 @@ export default function ProductDetailPage() {
   const [saved, setSaved] = useState(false);
   const [added, setAdded] = useState(false);
 
+  function addToBag() {
+    try {
+      const saved = window.localStorage.getItem('kivora-cart');
+      const current = saved ? JSON.parse(saved) as typeof products : [];
+      current.push({ id: product.id, name: product.name, category: product.category, price: product.price, image: product.image, description: product.description });
+      window.localStorage.setItem('kivora-cart', JSON.stringify(current));
+      setAdded(true);
+    } catch {
+      window.localStorage.setItem('kivora-cart', JSON.stringify([{ id: product.id, name: product.name, category: product.category, price: product.price, image: product.image, description: product.description }]));
+      setAdded(true);
+    }
+  }
+
   if (!product) {
     return <main className="detailNotFound"><span className="eyebrow">A LITTLE DETOUR</span><h1>We couldn't find that find.</h1><p>This product may have moved. Explore the full Kivora collection instead.</p><Link className="primaryButton" href="/">Back to the collection <ArrowRight size={16} /></Link></main>;
   }
@@ -39,8 +52,8 @@ export default function ProductDetailPage() {
         <div className="detailImageWrap"><img src={product.image} alt={product.name} className="detailImage" />{product.tag && <span className="detailTag">{product.tag}</span>}<span className="detailImageCaption">THOUGHTFULLY FOUND. EVERYDAY LOVED.</span></div>
         <div className="detailInfo"><span className="eyebrow"><span className="eyebrowLine" /> {product.category.toUpperCase()} · THE KIVORA EDIT</span><h1>{product.name}</h1><p className="detailDescription">{product.description}</p><div className="detailPrice">{money(product.price)}</div><div className="detailRule" /><p className="detailIntro">Good design should feel right at home in your everyday. This is one of those little things chosen to make daily life feel a bit more considered.</p>
           <ul className="detailBullets">{product.details.map((detail) => <li key={detail}><Check size={15} />{detail}</li>)}</ul>
-          <div className="detailActions"><button className="detailAddButton" onClick={() => setAdded(true)}>{added ? <><Check size={17} /> Added to your interest list</> : <>I'm interested <ArrowRight size={17} /></>}</button><button className={saved ? 'detailSaveButton detailSaved' : 'detailSaveButton'} onClick={() => setSaved(!saved)} aria-label={saved ? 'Remove from saved items' : 'Save item'}><Heart size={18} fill={saved ? 'currentColor' : 'none'} /></button></div>
-          {added && <p className="detailNotice" role="status">Thanks for your interest! Online checkout is coming in a future update. <Link href="/#shop">Keep exploring</Link>.</p>}
+          <div className="detailActions"><button className="detailAddButton" onClick={addToBag} disabled={added}>{added ? <><Check size={17} /> Added to your bag</> : <>Add to bag <ArrowRight size={17} /></>}</button><button className={saved ? 'detailSaveButton detailSaved' : 'detailSaveButton'} onClick={() => setSaved(!saved)} aria-label={saved ? 'Remove from saved items' : 'Save item'}><Heart size={18} fill={saved ? 'currentColor' : 'none'} /></button></div>
+          {added && <p className="detailNotice" role="status">Added to your bag. <Link href="/checkout">Continue to checkout</Link> or <Link href="/#shop">keep exploring</Link>.</p>}
           <div className="detailPerks"><div><Truck size={18} /><span><b>Complimentary shipping</b><small>On orders over ₹4,999</small></span></div><div><ShieldCheck size={18} /><span><b>Thoughtfully selected</b><small>Everyday pieces, elevated</small></span></div></div>
           <div className="detailNote"><span>THE KIVORA PROMISE</span><p>Less noise. More meaning. A little more joy in the everyday.</p></div>
         </div>
