@@ -187,6 +187,9 @@ export default function CheckoutPage() {
       });
       checkout.open();
     } catch (caught) {
+      if (orderId && paymentMethod === 'razorpay') {
+        await supabase.rpc('cancel_my_order', { p_order_id: orderId });
+      }
       setError(caught instanceof Error ? caught.message : 'We could not place your order. Please try again.');
       setReviewing(false);
       setBusy(false);
