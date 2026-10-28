@@ -14,19 +14,26 @@ export default function AccountPage() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [userName, setUserName] = useState<string | null>(null);\n  const [address, setAddress] = useState('');\n  const [rating, setRating] = useState(5);\n  const [feedback, setFeedback] = useState('');\n  const [savingAddress, setSavingAddress] = useState(false);\n  const [sendingFeedback, setSendingFeedback] = useState(false);
+  const [userName, setUserName] = useState<string | null>(null);
+  const [address, setAddress] = useState('');
+  const [rating, setRating] = useState(5);
+  const [feedback, setFeedback] = useState('');
+  const [savingAddress, setSavingAddress] = useState(false);
+  const [sendingFeedback, setSendingFeedback] = useState(false);
 
   useEffect(() => {
     let mounted = true;
     supabase.auth.getSession().then(({ data }) => {
       if (mounted) {
         setUserEmail(data.session?.user.email ?? null);
-        setUserName((data.session?.user.user_metadata?.full_name as string | undefined) ?? null);\n        setAddress((data.session?.user.user_metadata?.delivery_address as string | undefined) ?? '');
+        setUserName((data.session?.user.user_metadata?.full_name as string | undefined) ?? null);
+        setAddress((data.session?.user.user_metadata?.delivery_address as string | undefined) ?? '');
       }
     });
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUserEmail(session?.user.email ?? null);
-      setUserName((session?.user.user_metadata?.full_name as string | undefined) ?? null);\n      setAddress((session?.user.user_metadata?.delivery_address as string | undefined) ?? '');
+      setUserName((session?.user.user_metadata?.full_name as string | undefined) ?? null);
+      setAddress((session?.user.user_metadata?.delivery_address as string | undefined) ?? '');
     });
     return () => {
       mounted = false;
@@ -49,7 +56,8 @@ export default function AccountPage() {
         if (authError) throw authError;
         if (data.session) {
           setUserEmail(data.session.user.email ?? email);
-          setUserName((data.session.user.user_metadata?.full_name as string | undefined) ?? name);\n          setAddress((data.session.user.user_metadata?.delivery_address as string | undefined) ?? '');
+          setUserName((data.session.user.user_metadata?.full_name as string | undefined) ?? name);
+          setAddress((data.session.user.user_metadata?.delivery_address as string | undefined) ?? '');
           setMessage('Your account has been created and you are signed in.');
         } else {
           setMessage('Account created. Check your email for a confirmation link before signing in.');
@@ -58,7 +66,8 @@ export default function AccountPage() {
         const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
         if (authError) throw authError;
         setUserEmail(data.user.email ?? email);
-        setUserName((data.user.user_metadata?.full_name as string | undefined) ?? null);\n        setAddress((data.user.user_metadata?.delivery_address as string | undefined) ?? '');
+        setUserName((data.user.user_metadata?.full_name as string | undefined) ?? null);
+        setAddress((data.user.user_metadata?.delivery_address as string | undefined) ?? '');
         setMessage('You are signed in. Welcome back!');
       }
       setPassword('');
