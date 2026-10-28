@@ -6,22 +6,22 @@ import { ArrowRight, ArrowUpRight, Check, ChevronDown, Heart, Menu, Search, Shop
 type Product = { id: number; name: string; category: string; price: number; image: string; tag?: string; description: string };
 
 const products: Product[] = [
-  { id: 1, name: 'Everyday Carry Tote', category: 'Accessories', price: 48, image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=900&q=85', tag: 'Bestseller', description: 'A roomy, considered companion for every day.' },
-  { id: 2, name: 'Cloud Knit Sweater', category: 'Fashion', price: 78, image: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=900&q=85', tag: 'New in', description: 'Soft layers for slower mornings.' },
-  { id: 3, name: 'Studio Headphones', category: 'Technology', price: 96, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=900&q=85', description: 'Immersive sound, beautifully simple.' },
-  { id: 4, name: 'Sculpted Water Bottle', category: 'Wellness', price: 32, image: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=900&q=85', description: 'A little reminder to slow down and hydrate.' },
-  { id: 5, name: 'Weekend Sneakers', category: 'Fashion', price: 89, image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=85', tag: 'Customer favorite', description: 'Comfort made for all-day wandering.' },
-  { id: 6, name: 'Warm Glow Table Lamp', category: 'Home', price: 64, image: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=900&q=85', description: 'A softer kind of light for your space.' },
-  { id: 7, name: 'Minimal Timepiece', category: 'Accessories', price: 112, image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=900&q=85', description: 'Timeless design, down to the details.' },
-  { id: 8, name: 'Daily Ritual Skincare', category: 'Wellness', price: 38, image: 'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?auto=format&fit=crop&w=900&q=85', tag: 'Feel-good find', description: 'A simple, feel-good moment for your routine.' },
-  { id: 9, name: 'Pocket Speaker', category: 'Technology', price: 58, image: 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?auto=format&fit=crop&w=900&q=85', description: 'Bring your favorite sound wherever you go.' },
-  { id: 10, name: 'Sunday Sunglasses', category: 'Accessories', price: 42, image: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=900&q=85', description: 'An easy finishing touch for sunny days.' },
-  { id: 11, name: 'Ceramic Pour-Over', category: 'Home', price: 36, image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=85', description: 'Make your everyday coffee feel like a ritual.' },
-  { id: 12, name: 'Carry-All Wallet', category: 'Accessories', price: 34, image: 'https://images.unsplash.com/photo-1627123424574-724758594e93?auto=format&fit=crop&w=900&q=85', description: 'Small, useful, and thoughtfully made.' },
+  { id: 1, name: 'Everyday Carry Tote', category: 'Accessories', price: 3999, image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=900&q=85', tag: 'Bestseller', description: 'A roomy, considered companion for every day.' },
+  { id: 2, name: 'Cloud Knit Sweater', category: 'Fashion', price: 6499, image: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=900&q=85', tag: 'New in', description: 'Soft layers for slower mornings.' },
+  { id: 3, name: 'Studio Headphones', category: 'Technology', price: 7999, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=900&q=85', description: 'Immersive sound, beautifully simple.' },
+  { id: 4, name: 'Sculpted Water Bottle', category: 'Wellness', price: 1499, image: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=900&q=85', description: 'A little reminder to slow down and hydrate.' },
+  { id: 5, name: 'Weekend Sneakers', category: 'Fashion', price: 7499, image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=85', tag: 'Customer favorite', description: 'Comfort made for all-day wandering.' },
+  { id: 6, name: 'Warm Glow Table Lamp', category: 'Home', price: 5299, image: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=900&q=85', description: 'A softer kind of light for your space.' },
+  { id: 7, name: 'Minimal Timepiece', category: 'Accessories', price: 9499, image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=900&q=85', description: 'Timeless design, down to the details.' },
+  { id: 8, name: 'Daily Ritual Skincare', category: 'Wellness', price: 2499, image: 'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?auto=format&fit=crop&w=900&q=85', tag: 'Feel-good find', description: 'A simple, feel-good moment for your routine.' },
+  { id: 9, name: 'Pocket Speaker', category: 'Technology', price: 4499, image: 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?auto=format&fit=crop&w=900&q=85', description: 'Bring your favorite sound wherever you go.' },
+  { id: 10, name: 'Sunday Sunglasses', category: 'Accessories', price: 2999, image: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=900&q=85', description: 'An easy finishing touch for sunny days.' },
+  { id: 11, name: 'Ceramic Pour-Over', category: 'Home', price: 2199, image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=85', description: 'Make your everyday coffee feel like a ritual.' },
+  { id: 12, name: 'Carry-All Wallet', category: 'Accessories', price: 1799, image: 'https://images.unsplash.com/photo-1627123424574-724758594e93?auto=format&fit=crop&w=900&q=85', description: 'Small, useful, and thoughtfully made.' },
 ];
 
 const categories = ['All', 'Fashion', 'Home', 'Technology', 'Accessories', 'Wellness'];
-const money = (amount: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(amount);
+const money = (amount: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
 
 export default function Home() {
   const [category, setCategory] = useState('All');
@@ -39,7 +39,7 @@ export default function Home() {
 
   return (
     <>
-      <div className="announcement"><Sparkles size={13} /> A LITTLE SOMETHING GOOD <span className="announcementDot">•</span> Complimentary shipping on orders over $75</div>
+      <div className="announcement"><Sparkles size={13} /> A LITTLE SOMETHING GOOD <span className="announcementDot">•</span> Complimentary shipping on orders over ₹4,999</div>
       <div className="siteWrap">
         <header className="nav">
           <button className="mobileMenu iconButton" onClick={() => setMobileMenu(!mobileMenu)} aria-label="Toggle navigation">{mobileMenu ? <X size={21} /> : <Menu size={21} />}</button>
@@ -59,7 +59,7 @@ export default function Home() {
             <div className="heroVisual"><img className="heroPhoto" src="https://images.unsplash.com/photo-1490312278390-ab64016e0aa9?auto=format&fit=crop&w=1400&q=90" alt="Warm, curated modern living space" /><div className="heroPhotoShade" /><div className="heroStamp"><span>THE KIVORA EDIT</span><strong>Made for<br />your everyday.</strong><ArrowUpRight size={19} /></div><div className="floatingNote"><span className="floatingIcon"><Sparkles size={18} /></span><span><b>Little things, big joy</b><small>Find your new favorite</small></span></div><span className="heroIndex">01 / 04 — THE EVERYDAY EDIT</span></div>
           </section>
 
-          <section className="valueStrip" aria-label="Store benefits"><div><span className="valueIcon">✳</span><span><b>Thoughtfully chosen</b><small>Quality over clutter</small></span></div><div><span className="valueIcon">↗</span><span><b>Made for real life</b><small>Useful, beautiful essentials</small></span></div><div><span className="valueIcon">♡</span><span><b>A little more joy</b><small>Good things, good feelings</small></span></div><div><span className="valueIcon">◎</span><span><b>Easy everyday shopping</b><small>Free shipping over $75</small></span></div></section>
+          <section className="valueStrip" aria-label="Store benefits"><div><span className="valueIcon">✳</span><span><b>Thoughtfully chosen</b><small>Quality over clutter</small></span></div><div><span className="valueIcon">↗</span><span><b>Made for real life</b><small>Useful, beautiful essentials</small></span></div><div><span className="valueIcon">♡</span><span><b>A little more joy</b><small>Good things, good feelings</small></span></div><div><span className="valueIcon">◎</span><span><b>Easy everyday shopping</b><small>Free shipping over ₹4,999</small></span></div></section>
 
           <section className="shopSection" id="shop"><div className="sectionHeading"><div><span className="eyebrow"><span className="eyebrowLine" /> THE GOOD STUFF</span><h2>Find your <em>favorite.</em></h2><p>Little upgrades for every corner of your life.</p></div><button className="textLink" onClick={() => { setCategory('All'); setSearch(''); }}>View all products <ArrowRight size={16} /></button></div>
             <div className="shopToolbar"><div className="categoryFilters" aria-label="Filter products">{categories.map((c) => <button key={c} className={category === c ? 'filterPill filterActive' : 'filterPill'} onClick={() => setCategory(c)}>{c}</button>)}</div><span className="resultCount">{filtered.length} pieces</span></div>
