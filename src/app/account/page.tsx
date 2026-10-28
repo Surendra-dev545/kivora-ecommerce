@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState, type FormEvent } from 'react';
-import { ArrowLeft, ArrowRight, Check, LockKeyhole, Mail, ShieldCheck, Sparkles, UserRound, LogOut } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, LockKeyhole, Mail, ShieldCheck, Sparkles, UserRound, LogOut, MapPin, Package, MessageSquare, Save, Star } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 export default function AccountPage() {
@@ -15,6 +15,11 @@ export default function AccountPage() {
   const [busy, setBusy] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
+  const [address, setAddress] = useState('');
+  const [rating, setRating] = useState(5);
+  const [feedback, setFeedback] = useState('');
+  const [savingAddress, setSavingAddress] = useState(false);
+  const [sendingFeedback, setSendingFeedback] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -22,11 +27,13 @@ export default function AccountPage() {
       if (mounted) {
         setUserEmail(data.session?.user.email ?? null);
         setUserName((data.session?.user.user_metadata?.full_name as string | undefined) ?? null);
+        setAddress((data.session?.user.user_metadata?.delivery_address as string | undefined) ?? '');
       }
     });
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUserEmail(session?.user.email ?? null);
       setUserName((session?.user.user_metadata?.full_name as string | undefined) ?? null);
+      setAddress((session?.user.user_metadata?.delivery_address as string | undefined) ?? '');
     });
     return () => {
       mounted = false;
@@ -50,6 +57,7 @@ export default function AccountPage() {
         if (data.session) {
           setUserEmail(data.session.user.email ?? email);
           setUserName((data.session.user.user_metadata?.full_name as string | undefined) ?? name);
+          setAddress((data.session.user.user_metadata?.delivery_address as string | undefined) ?? '');
           setMessage('Your account has been created and you are signed in.');
         } else {
           setMessage('Account created. Check your email for a confirmation link before signing in.');
@@ -59,6 +67,7 @@ export default function AccountPage() {
         if (authError) throw authError;
         setUserEmail(data.user.email ?? email);
         setUserName((data.user.user_metadata?.full_name as string | undefined) ?? null);
+        setAddress((data.user.user_metadata?.delivery_address as string | undefined) ?? '');
         setMessage('You are signed in. Welcome back!');
       }
       setPassword('');
@@ -67,6 +76,24 @@ export default function AccountPage() {
     } finally {
       setBusy(false);
     }
+  }
+
+  async function saveAddress(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); setSavingAddress(true); setError(''); setMessage('');
+    const { data, error: updateError } = await supabase.auth.updateUser({ data: { full_name: userName ?? '', delivery_address: address.trim() } });
+    if (updateError) setError(updateError.message);
+    else { setUserName((data.user.user_metadata?.full_name as string | undefined) ?? userName); setMessage('Your delivery address has been saved.'); }
+    setSavingAddress(false);
+  }
+
+  async function submitFeedback(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); setSendingFeedback(true); setError(''); setMessage('');
+    const { data: auth } = await supabase.auth.getUser();
+    if (!auth.user) { setError('Please sign in again to send feedback.'); setSendingFeedback(false); return; }
+    const { error: feedbackError } = await supabase.from('customer_feedback').insert({ user_id: auth.user.id, rating, message: feedback.trim() });
+    if (feedbackError) setError(feedbackError.message.includes('customer_feedback') ? 'Feedback setup is not finished yet. Please try again after the store update is complete.' : feedbackError.message);
+    else { setFeedback(''); setRating(5); setMessage('Thank you! Your feedback has been sent to Kivora.'); }
+    setSendingFeedback(false);
   }
 
   async function handleSignOut() {
@@ -99,13 +126,29 @@ export default function AccountPage() {
         <div className="accountFormPanel">
           <div className="accountFormHeading"><span className="accountFormIcon"><UserRound size={20} /></span><span className="eyebrow">WELCOME TO KIVORA</span><h2>{userEmail ? 'You’re signed in.' : mode === 'create' ? 'Create your account.' : 'Welcome back.'}</h2><p>{userEmail ? 'Your Kivora account is connected.' : mode === 'create' ? 'A few details to get you started.' : 'Your little finds are waiting.'}</p></div>
           {userEmail ? (
-            <div className="accountFeedback" role="status">
-              <span className="accountFeedbackIcon"><Check size={22} /></span>
-              <h3>Welcome{userName ? `, ${userName}` : ' to Kivora'}.</h3>
-              <p>You’re signed in as <strong>{userEmail}</strong>.</p>
-              <Link className="primaryButton" href="/account/orders" style={{ margin: '0 auto 12px' }}>View my orders <ArrowRight size={16} /></Link>
-              {message && <p>{message}</p>}
-              <button type="button" className="primaryButton" onClick={handleSignOut}><LogOut size={16} /> Sign out</button>
+            <div className="accountDashboard">
+              <div className="accountWelcome"><span className="accountFeedbackIcon"><UserRound size={21} /></span><div><h3>Hello{userName ? `, ${userName}` : ''}!</h3><p>{userEmail}</p></div><button type="button" className="accountSignOut" onClick={handleSignOut}><LogOut size={14} /> Sign out</button></div>
+              <div className="accountQuickLinks">
+                <Link href="/account/orders"><Package size={19} /><span><b>My orders</b><small>Track, cancel and review orders</small></span><ArrowRight size={16} /></Link>
+                <a href="#saved-address"><MapPin size={19} /><span><b>Saved address</b><small>Manage your delivery details</small></span><ArrowRight size={16} /></a>
+                <a href="#customer-feedback"><MessageSquare size={19} /><span><b>Help & feedback</b><small>Tell us how we can improve</small></span><ArrowRight size={16} /></a>
+              </div>
+              <form id="saved-address" className="accountProfileForm" onSubmit={saveAddress}>
+                <h3><MapPin size={17} /> Delivery address</h3>
+                <label>Full name<input value={userName ?? ''} onChange={(event) => setUserName(event.target.value)} placeholder="Name for delivery" required /></label>
+                <label>Address<textarea value={address} onChange={(event) => setAddress(event.target.value)} rows={3} placeholder="Flat / house, street, area, city, state and PIN code" required /></label>
+                <button className="accountSubmit" type="submit" disabled={savingAddress}>{savingAddress ? 'Saving…' : 'Save address'} <Save size={15} /></button>
+              </form>
+              <form id="customer-feedback" className="accountProfileForm" onSubmit={submitFeedback}>
+                <h3><MessageSquare size={17} /> Share your feedback</h3>
+                <p className="accountFeedbackHint">Your thoughts help us make Kivora better.</p>
+                <div className="ratingPicker" role="group" aria-label="Rating out of five">{[1,2,3,4,5].map((value) => <button key={value} type="button" aria-label={value + ' star' + (value > 1 ? 's' : '')} aria-pressed={rating === value} className={value <= rating ? 'ratingStar ratingStarActive' : 'ratingStar'} onClick={() => setRating(value)}><Star size={19} fill={value <= rating ? 'currentColor' : 'none'} /></button>)}</div>
+                <label>Your feedback<textarea value={feedback} onChange={(event) => setFeedback(event.target.value)} minLength={3} maxLength={2000} rows={3} placeholder="What went well, or what could be better?" required /></label>
+                <button className="accountSubmit" type="submit" disabled={sendingFeedback}>{sendingFeedback ? 'Sending…' : 'Send feedback'} <ArrowRight size={16} /></button>
+              </form>
+              {error && <p className="accountAuthError" role="alert">{error}</p>}
+              {message && <p className="accountAuthMessage" role="status">{message}</p>}
+              <Link className="accountAdminLink" href="/admin/orders">Store admin <ArrowRight size={14} /></Link>
             </div>
           ) : <>
             <div className="accountTabs" role="tablist" aria-label="Account access">

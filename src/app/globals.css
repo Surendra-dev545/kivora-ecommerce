@@ -191,3 +191,75 @@ a{color:inherit}
 .commerceFooter{margin-top:auto;border-top:1px solid var(--line);padding:20px 0 26px;display:flex;align-items:center;justify-content:space-between;gap:15px;color:#85887f;font-size:9px}.commerceFooter .detailLogo{justify-self:auto;font-size:23px}.commerceFooter>a:last-child{color:#596353;text-decoration:none}
 @media(max-width:760px){.commercePage{padding:0 18px}.commerceHeader{height:69px}.commerceHeader .detailLogo{font-size:25px}.checkoutSecure{font-size:7px;letter-spacing:.04em}.commerceIntro{padding:32px 0 22px}.commerceIntro h1{font-size:45px}.checkoutGrid{grid-template-columns:1fr;gap:15px}.orderSummaryPanel{position:static;grid-row:1}.checkoutPanel{padding:22px 18px}.commerceSectionHeading h2{font-size:23px}.orderTimeline{gap:5px}.timelineStep:before{left:27px;right:-5px}.timelineIcon{width:27px;height:27px}.timelineStep strong{font-size:8px}.timelineStep small{font-size:7px}.orderCardBottom{align-items:flex-start}.orderCardActions{justify-content:flex-end}.commerceFooter{font-size:8px;gap:9px}.commerceFooter .detailLogo{font-size:21px}}
 @media(max-width:430px){.commerceHeader{grid-template-columns:1fr 1fr 1fr}.commerceHeader .backLink{font-size:8px;gap:5px}.checkoutSecure{font-size:6px}.orderCardHeader h2{font-size:19px}.orderStatus{font-size:8px;padding:6px 7px}.orderCardBottom{flex-direction:column}.orderCardActions{justify-content:flex-start}.timelineStep small{display:none}.orderTimeline{padding:20px 0}.commerceFooter>span{display:none}}
+
+
+/* Customer account dashboard and responsive admin order desk */
+.accountDashboard{display:grid;gap:17px;min-width:0}
+.accountWelcome{display:flex;align-items:center;gap:12px;min-width:0;padding-bottom:17px;border-bottom:1px solid var(--line)}
+.accountWelcome .accountFeedbackIcon{flex-shrink:0;margin:0;width:42px;height:42px}
+.accountWelcome>div{min-width:0;flex:1}
+.accountWelcome h3{font-family:var(--serif);font-weight:400;font-size:25px;margin:0 0 4px;overflow-wrap:anywhere}
+.accountWelcome p{font-size:10px;color:var(--muted);margin:0;overflow-wrap:anywhere}
+.accountSignOut{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);background:transparent;padding:8px;font-size:9px;white-space:nowrap}
+.accountQuickLinks{display:grid;grid-template-columns:1fr;gap:8px}
+.accountQuickLinks>a{display:flex;align-items:center;gap:12px;padding:13px;border:1px solid #e4e5dc;background:#fffefa;text-decoration:none;color:#586b4e;min-width:0}
+.accountQuickLinks>a>span{flex:1;min-width:0;color:var(--ink)}
+.accountQuickLinks b,.accountQuickLinks small{display:block}
+.accountQuickLinks b{font-size:11px}.accountQuickLinks small{font-size:9px;color:var(--muted);line-height:1.5;margin-top:4px}
+.accountQuickLinks>a:hover{border-color:#aab79d;background:#f8f9f3}
+.accountProfileForm{display:grid;gap:12px;padding:17px;border:1px solid #e4e5dc;background:#fffefa;min-width:0}
+.accountProfileForm h3{display:flex;align-items:center;gap:8px;font-family:var(--serif);font-size:20px;font-weight:400;margin:0 0 2px}
+.accountProfileForm>label{display:grid;gap:7px;font-size:10px;font-weight:600;color:#454d42}
+.accountProfileForm input,.accountProfileForm textarea{width:100%;min-width:0;border:1px solid #dedfd6;background:#fffefa;padding:12px;font:inherit;font-size:11px;color:var(--ink);outline:0;resize:vertical}
+.accountProfileForm input:focus,.accountProfileForm textarea:focus{border-color:#7b8b6f;box-shadow:0 0 0 2px #7b8b6f14}
+.accountProfileForm .accountSubmit{width:100%;padding:12px;display:flex;flex-direction:row;align-items:center;gap:8px}
+.accountFeedbackHint{font-size:10px;color:var(--muted);margin:0;line-height:1.6}
+.ratingPicker{display:flex;align-items:center;gap:7px}
+.ratingStar{display:grid;place-items:center;width:35px;height:35px;border:1px solid var(--line);background:transparent;color:#a4a69b}
+.ratingStarActive{color:#7a875e;background:#f0f2e8;border-color:#d7dfc9}
+.accountAdminLink{display:inline-flex;justify-self:start;align-items:center;gap:7px;font-size:9px;color:#6c7563;text-decoration:none;padding:6px 0}
+.accountAdminLink:hover{text-decoration:underline}
+.adminOrdersPage{padding-bottom:35px}
+.adminTopActions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 17px}
+.adminTopActions>span{display:flex;align-items:center;gap:8px;color:#5d6e52;font-size:11px}
+.adminTopActions .commerceSecondary{min-height:36px;padding:9px 12px}
+.adminStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:25px}
+.adminStat{display:flex;flex-direction:column;align-items:flex-start;gap:9px;text-align:left;min-width:0;border:1px solid var(--line);background:#fffefa;padding:17px}
+.adminStat small{font-size:10px;color:var(--muted)}.adminStat strong{font-size:24px;font-weight:500}
+.adminStatActive{border-color:#829374;background:#eef1e7}
+.adminOrderList{display:grid;gap:16px;padding-bottom:30px}
+.adminOrderCard{min-width:0;border:1px solid #e6e5dc;background:#fffefa;padding:clamp(16px,2.6vw,25px)}
+.adminOrderHeading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:15px;border-bottom:1px solid var(--line)}
+.adminOrderHeading h2{font-family:var(--serif);font-size:22px;font-weight:400;margin:5px 0}
+.adminOrderHeading p{font-size:9px;color:var(--muted);margin:0}
+.adminOrderDetails{display:grid;grid-template-columns:1fr 1.25fr .8fr;gap:18px;padding:17px 0}
+.adminOrderDetails>div{min-width:0;overflow-wrap:anywhere}
+.adminOrderDetails>div>span{display:block;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#85887f;margin-bottom:7px}
+.adminOrderDetails strong,.adminOrderDetails small{display:block}.adminOrderDetails strong{font-size:11px;line-height:1.6}.adminOrderDetails small{font-size:9px;line-height:1.6;color:var(--muted);margin-top:3px}.adminOrderDetails p{font-size:10px;line-height:1.7;color:#60665b;margin:0}
+.adminOrderItems{display:grid;gap:8px;padding:13px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.adminOrderItems>div{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;font-size:10px}.adminOrderItems>div span{min-width:0;overflow-wrap:anywhere}.adminOrderItems strong{white-space:nowrap;font-weight:500}
+.adminOrderFooter{display:flex;align-items:center;justify-content:space-between;gap:15px;padding-top:15px}
+.adminOrderFooter label{display:flex;align-items:center;gap:10px;font-size:10px;color:#4d5947;min-width:0}
+.adminOrderFooter select{max-width:100%;min-width:145px;border:1px solid #d9dcd0;background:#f8f9f3;padding:10px;font-size:10px;color:var(--ink)}
+.adminOrderFooter>span{font-size:9px;color:var(--muted);text-align:right}
+@media(max-width:760px){
+ .accountWelcome{flex-wrap:wrap}.accountWelcome>div{flex-basis:calc(100% - 100px)}
+ .accountSignOut{margin-left:auto}
+ .adminStats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .adminStat{padding:13px}.adminStat strong{font-size:21px}
+ .adminOrderDetails{grid-template-columns:1fr 1fr;gap:14px}
+ .adminOrderDetails>div:nth-child(2){grid-column:1/-1;grid-row:2}
+ .adminOrderFooter{align-items:flex-start;flex-direction:column}
+ .adminOrderFooter label{width:100%;justify-content:space-between}
+ .adminOrderFooter select{flex:1;min-width:0;width:60%}
+ .adminOrderFooter>span{text-align:left}
+}
+@media(max-width:430px){
+ .accountWelcome h3{font-size:22px}
+ .accountProfileForm{padding:13px}
+ .adminOrderHeading h2{font-size:18px}
+ .adminOrderHeading .orderStatus{max-width:48%;white-space:normal;text-align:center;line-height:1.4}
+ .adminTopActions .commerceSecondary{font-size:9px}
+ .adminOrderDetails{grid-template-columns:1fr}
+ .adminOrderDetails>div:nth-child(2){grid-column:auto;grid-row:auto}
+}
