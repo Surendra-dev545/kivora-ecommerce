@@ -307,3 +307,5 @@ a{color:inherit}
     font-size: 10px;
   }
 }
+
+.adminOrderItems .adminOrderItem{display:grid;grid-template-columns:48px minmax(0,1fr) auto;align-items:center;gap:12px}.adminOrderItems .adminOrderItem img,.adminOrderItems .adminOrderItemPlaceholder{width:48px;height:56px;object-fit:cover;background:#f1f0e9;border-radius:2px}.adminOrderItems .adminOrderItemPlaceholder{display:grid;place-items:center;color:#647067;font-family:serif;font-size:20px}.adminOrderItems .adminOrderItem>span{font-size:11px}.adminOrderItems .adminOrderItem strong{font-size:11px}
