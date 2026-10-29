@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
-const allowedStatuses = ['confirmed', 'processing', 'shipped', 'delivered', 'cancelled'] as const;
+const allowedStatuses = ['confirmed', 'processing', 'shipped', 'out_for_delivery', 'delivered', 'cancelled'] as const;
 type OrderStatus = typeof allowedStatuses[number];
 
 async function getAdminClient(request: Request) {
