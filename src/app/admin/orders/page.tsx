@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 
 type Order = {
   id: string; order_number: string; customer_name: string; customer_email: string; customer_phone?: string | null;
-  shipping_address: string; items: { name: string; quantity: number; line_total: number }[]; total: number;
+  shipping_address: string; items: { name: string; quantity: number; line_total: number; image?: string | null }[]; total: number;
   status: string; payment_method: string; payment_status: string; created_at: string;
 };
 const statuses = ['awaiting_payment', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
@@ -38,6 +38,25 @@ export default function AdminOrdersPage() {
   }, []);
 
   useEffect(() => { void loadOrders(); }, [loadOrders]);
+
+  // Keep the admin desk fresh without requiring a manual refresh.
+  useEffect(() => {
+    if (!signedIn) return;
+    const timer = window.setInterval(async () => {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      if (!token) return;
+      try {
+        const response = await fetch('/api/admin/orders', { headers: { Authorization: 'Bearer ' + token }, cache: 'no-store' });
+        if (!response.ok) return;
+        const result = await response.json() as { orders?: Order[] };
+        setOrders(result.orders ?? []);
+      } catch {
+        // Keep the last successfully loaded order list if a refresh fails.
+      }
+    }, 15000);
+    return () => window.clearInterval(timer);
+  }, [signedIn]);
   const accessDenied = error === 'Admin access only.';
   const needsSignIn = error === 'Sign in with your store-owner account first.' || error === 'Please sign in to continue.';
   const visibleOrders = useMemo(() => filter === 'all' ? orders : filter === 'pending' ? orders.filter((order) => ['awaiting_payment', 'confirmed'].includes(order.status)) : orders.filter((order) => order.status === filter), [orders, filter]);
@@ -68,7 +87,7 @@ export default function AdminOrdersPage() {
     {!error && loading ? <div className="commerceLoading"><RefreshCw size={19} /> Loading orders…</div> : !error && signedIn && visibleOrders.length === 0 ? <section className="commerceEmpty"><ClipboardList size={28} /><h2>No orders yet</h2><p>There are currently no customer orders to display.</p></section> : !error && signedIn && visibleOrders.length > 0 ? <section className="adminOrderList">{visibleOrders.map((order) => <article className="adminOrderCard" key={order.id}>
       <div className="adminOrderHeading"><div><span className="orderEyebrow">ORDER NUMBER</span><h2>{order.order_number}</h2><p>{new Date(order.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</p></div><span className={order.status === 'cancelled' ? 'orderStatus orderStatusCancelled' : 'orderStatus'}>{order.status.replaceAll('_', ' ')}</span></div>
       <div className="adminOrderDetails"><div><span>Customer</span><strong>{order.customer_name}</strong><small>{order.customer_email}</small>{order.customer_phone && <small>{order.customer_phone}</small>}</div><div><span>Delivery address</span><p>{order.shipping_address}</p></div><div><span>Payment</span><strong>{money(order.total)}</strong><small>{order.payment_method.replaceAll('_', ' ')} · {order.payment_status}</small></div></div>
-      <div className="adminOrderItems">{(order.items ?? []).map((item, index) => <div key={index}><span>{item.name} × {item.quantity}</span><strong>{money(item.line_total)}</strong></div>)}</div>
+      <div className="adminOrderItems">{(order.items ?? []).map((item, index) => <div className="adminOrderItem" key={index}>{item.image ? <img src={item.image} alt={item.name} loading="lazy" /> : <span className="adminOrderItemPlaceholder">K</span>}<span>{item.name} × {item.quantity}</span><strong>{money(item.line_total)}</strong></div>)}</div>
       <div className="adminOrderFooter"><label>Update status<select value={order.status} disabled={busy === order.id} onChange={(event) => void updateStatus(order, event.target.value)}>{statuses.map((status) => <option value={status} key={status}>{status.replaceAll('_', ' ').replace(/^\w/, (char) => char.toUpperCase())}</option>)}</select></label><span>{busy === order.id ? 'Saving…' : 'Changes save immediately'}</span></div>
     </article>)}</section> : null}
     <footer className="commerceFooter"><Link className="detailLogo" href="/">kivora<span>.</span></Link><span>Customer details are visible to authorized store admins only.</span><Link href="/account">My account</Link></footer>
