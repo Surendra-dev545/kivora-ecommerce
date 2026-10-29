@@ -38,6 +38,25 @@ export default function AdminOrdersPage() {
   }, []);
 
   useEffect(() => { void loadOrders(); }, [loadOrders]);
+
+  // Keep the admin desk fresh without requiring a manual refresh.
+  useEffect(() => {
+    if (!signedIn) return;
+    const timer = window.setInterval(async () => {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      if (!token) return;
+      try {
+        const response = await fetch('/api/admin/orders', { headers: { Authorization: 'Bearer ' + token }, cache: 'no-store' });
+        if (!response.ok) return;
+        const result = await response.json() as { orders?: Order[] };
+        setOrders(result.orders ?? []);
+      } catch {
+        // Keep the last successfully loaded order list if a refresh fails.
+      }
+    }, 15000);
+    return () => window.clearInterval(timer);
+  }, [signedIn]);
   const accessDenied = error === 'Admin access only.';
   const needsSignIn = error === 'Sign in with your store-owner account first.' || error === 'Please sign in to continue.';
   const visibleOrders = useMemo(() => filter === 'all' ? orders : filter === 'pending' ? orders.filter((order) => ['awaiting_payment', 'confirmed'].includes(order.status)) : orders.filter((order) => order.status === filter), [orders, filter]);
