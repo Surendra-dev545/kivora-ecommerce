@@ -47,7 +47,6 @@ export default function CheckoutPage() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [countryIso, setCountryIso] = useState('IN');
-  const [countrySearch, setCountrySearch] = useState('');
   const [address, setAddress] = useState('');
   const [error, setError] = useState('');
   const [signedIn, setSignedIn] = useState(false);
@@ -73,14 +72,12 @@ export default function CheckoutPage() {
 
   const countryOptions = useMemo(() => {
     const names = new Intl.DisplayNames(['en'], { type: 'region' });
-    const query = countrySearch.trim().toLowerCase().replace(/\s/g, '');
     return getCountries().map((code) => ({
       code,
       name: names.of(code) ?? code,
       dial: getCountryCallingCode(code),
-    })).filter((country) => country.code === countryIso || !query || country.name.toLowerCase().includes(query) || country.code.toLowerCase().includes(query) || ('+' + country.dial).includes(query))
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }, [countrySearch]);
+    })).sort((a, b) => a.name.localeCompare(b.name));
+  }, []);
   const selectedCountry = countryOptions.find((country) => country.code === countryIso) ?? {
     code: countryIso,
     name: countryIso,
@@ -245,9 +242,8 @@ export default function CheckoutPage() {
                 <label>Full name<input value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" required placeholder="Name for delivery" /></label>
                 <label>Email address<input value={email} readOnly type="email" autoComplete="email" /></label>
                 <label>Phone number <span className="optionalLabel">Optional</span>
-                  <input value={countrySearch} onChange={(event) => setCountrySearch(event.target.value)} type="search" placeholder="Search country or calling code (e.g. India, +91)" aria-label="Search country calling code" />
                   <div className="phoneInputGroup">
-                    <select value={countryIso} onChange={(event) => { setCountryIso(event.target.value); setCountrySearch(''); }} aria-label="Country calling code">
+                    <select value={countryIso} onChange={(event) => setCountryIso(event.target.value)} aria-label="Country calling code">
                       {countryOptions.map((country) => <option key={country.code} value={country.code}>{country.name} (+{country.dial})</option>)}
                     </select>
                     <input value={phone} onChange={(event) => setPhone(event.target.value.replace(/[^\d\s()-]/g, '').slice(0, 20))} type="tel" autoComplete="tel-national" placeholder="Mobile number" />
