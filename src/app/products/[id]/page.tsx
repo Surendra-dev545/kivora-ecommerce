@@ -23,7 +23,7 @@ const money = (amount: number) => new Intl.NumberFormat('en-IN', { style: 'curre
 
 export default function ProductDetailPage() {
   const params = useParams<{ id: string }>();
-  const [databaseProduct, setDatabaseProduct] = useState<null | { id: string; name: string; category: string; price: number; image: string; description: string; details: string[] }>(null);
+  const [databaseProduct, setDatabaseProduct] = useState<null | { id: string; name: string; category: string; price: number; image: string; description: string; details: string[]; tag?: string }>(null);
   const [saved, setSaved] = useState(false);
   const [added, setAdded] = useState(false);
   const product = databaseProduct ?? products.find((item) => item.id === Number(params.id));
