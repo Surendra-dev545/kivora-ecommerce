@@ -31,4 +31,4 @@ New catalogue products start with zero stock unless you enter a real quantity. T
 
 ## Important
 
-The stock trigger reserves stock atomically when an order is created and returns stock when the order is cancelled. Online payment verification and delivery tracking remain separate workflows; do not treat an order as paid or delivered just because it exists.
+The order trigger recalculates product names, prices, subtotal and delivery fee from the database (₹199 below ₹4,999; free at/above ₹4,999), then reserves stock atomically when an order is created. It returns stock when an order is cancelled. Online payment verification and delivery tracking remain separate workflows; do not treat an order as paid or delivered just because it exists.
