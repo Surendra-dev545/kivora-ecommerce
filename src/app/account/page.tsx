@@ -142,7 +142,7 @@ export default function AccountPage() {
               <div className="accountQuickLinks">
                 <Link href="/account/orders"><Package size={19} /><span><b>My orders</b><small>Track, cancel and review orders</small></span><ArrowRight size={16} /></Link>
                 <a href="#saved-address"><MapPin size={19} /><span><b>Saved address</b><small>Manage your delivery details</small></span><ArrowRight size={16} /></a>
-                <a href="#customer-feedback"><MessageSquare size={19} /><span><b>Help & feedback</b><small>Tell us how we can improve</small></span><ArrowRight size={16} /></a>
+                <a href="mailto:hello@kivora.example?subject=Kivora%20order%20support"><MessageSquare size={19} /><span><b>Help & support</b><small>Contact Kivora about an order or delivery</small></span><ArrowRight size={16} /></a><a href="#customer-feedback"><Star size={19} /><span><b>Share feedback</b><small>Rate your shopping experience</small></span><ArrowRight size={16} /></a>
               </div>
               <form id="saved-address" className="accountProfileForm" onSubmit={saveAddress}>
                 <h3><MapPin size={17} /> Delivery address</h3>
