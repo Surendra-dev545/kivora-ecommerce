@@ -165,6 +165,16 @@ export default function OrdersPage() {
                   <div><span className="trackingOverline">{cancelled ? 'ORDER UPDATE' : waiting ? 'ACTION REQUIRED' : 'DELIVERY STATUS'}</span><h4>{cancelled ? 'This order was cancelled' : waiting ? 'Payment is pending' : order.status === 'delivered' ? 'Your order has been delivered' : order.status === 'out_for_delivery' ? 'Your order is out for delivery' : 'Your order is moving along'}</h4><p>{cancelled ? 'If you have already paid, contact support for refund assistance.' : waiting ? 'Complete payment to move your order into confirmation.' : steps[Math.max(0, activeIndex)]?.note}</p></div>
                 </div>
 
+                {cancelled && <div className="trackingCancelledTimeline" aria-label="Cancelled order tracking history">
+                  <div className="trackingCancelledEvent">
+                    <span className="trackingCancelledPoint trackingCancelledPointDone"><Check size={13}/></span>
+                    <div><strong>Order confirmed</strong><span>{dateLabel(order.created_at)}</span><p>Your order was placed and recorded.</p></div>
+                  </div>
+                  <div className="trackingCancelledEvent trackingCancelledEventLast">
+                    <span className="trackingCancelledPoint"><XCircle size={13}/></span>
+                    <div><strong>Order cancelled</strong><span>{dateLabel(order.updated_at || order.created_at)}</span><p>This order was cancelled. Its order details and tracking history remain available here.</p></div>
+                  </div>
+                </div>}
                 {!cancelled && !waiting && <div className="trackingProgress">
                   <div className="trackingProgressRail"><span style={{ width: progress + '%' }} /></div>
                   <div className="trackingSteps">{steps.map((step, index) => {
