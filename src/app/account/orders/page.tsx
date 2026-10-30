@@ -177,7 +177,7 @@ export default function OrdersPage() {
                     </div>;
                   })}</div>
                 </div>}
-                {order.status === 'out_for_delivery' && <DeliveryMap orderId={order.id} />}
+                {['shipped', 'out_for_delivery'].includes(order.status) && <DeliveryMap orderId={order.id} />}
                 {waiting && <div className="trackingDeliveryNote"><Clock3 size={17}/><div><strong>Waiting for payment</strong><span>Your order timeline will begin once the payment is confirmed.</span></div></div>}
               </div>
 
@@ -208,9 +208,11 @@ export default function OrdersPage() {
 
 
 function DeliveryMap({orderId}:{orderId:string}) {
+  const [expanded,setExpanded]=useState(false);
   const [location,setLocation]=useState<{latitude:number;longitude:number;updated_at:string}|null>(null);
   const [message,setMessage]=useState('Waiting for the rider to share their GPS location…');
   useEffect(()=>{
+    if(!expanded)return;
     let alive=true;
     const refresh=async()=>{
       const {data}=await supabase.auth.getSession();const token=data.session?.access_token;
@@ -226,8 +228,18 @@ function DeliveryMap({orderId}:{orderId:string}) {
     void refresh();const timer=window.setInterval(()=>void refresh(),10000);
     const channel=supabase.channel('delivery-location-'+orderId).on('postgres_changes',{event:'*',schema:'public',table:'order_delivery_tracking',filter:'order_id=eq.'+orderId},()=>void refresh()).subscribe();
     return()=>{alive=false;window.clearInterval(timer);void supabase.removeChannel(channel)};
-  },[orderId]);
-  if(!location)return <div className="trackingDeliveryNote"><MapPin size={17}/><div><strong>Live rider tracking</strong><span>{message}</span></div></div>;
+  },[orderId,expanded]);
+  return <div className="trackingLivePanel">
+    <button type="button" className="trackingMapToggle" onClick={()=>setExpanded(value=>!value)} aria-expanded={expanded}>
+      <MapPin size={16}/><span>{expanded?'Hide live delivery':'Track live delivery'}</span><span className="trackingMapToggleArrow">{expanded?'−':'+'}</span>
+    </button>
+    {expanded && (!location
+      ? <div className="trackingDeliveryNote"><MapPin size={17}/><div><strong>Waiting for rider location</strong><span>{message}</span></div></div>
+      : <DeliveryMapFrame location={location} />)}
+  </div>;
+}
+
+function DeliveryMapFrame({location}:{location:{latitude:number;longitude:number;updated_at:string}}) {
   const lat=location.latitude,lon=location.longitude;
   const bbox=[lon-0.008,lat-0.006,lon+0.008,lat+0.006].join('%2C');
   const mapUrl='https://www.openstreetmap.org/export/embed.html?bbox='+bbox+'&layer=mapnik&marker='+lat+'%2C'+lon;
