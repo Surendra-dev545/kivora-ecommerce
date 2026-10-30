@@ -6,7 +6,7 @@ const allowedStatuses = ['confirmed', 'processing', 'shipped', 'out_for_delivery
 type OrderStatus = typeof allowedStatuses[number];
 
 async function getAdminClient(request: Request) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/+$/, '').replace(/\/rest\/v1$/i, '');
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const allowedEmails = (process.env.ADMIN_EMAILS ?? '').split(',').map((email) => email.trim().toLowerCase()).filter(Boolean);
   if (!url || !serviceKey || allowedEmails.length === 0) {
