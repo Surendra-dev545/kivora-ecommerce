@@ -1,6 +1,7 @@
 'use client';
 
-import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import type { FormEvent, CSSProperties } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { ArrowLeft, Box, Check, PackagePlus, Plus, RefreshCw, Save, Search } from 'lucide-react';
@@ -84,8 +85,8 @@ export default function AdminProductsPage() {
   const lowStock = products.filter((p) => p.stock_quantity <= p.low_stock_threshold).length;
   const active = products.filter((p) => p.is_active).length;
 
-  const fieldStyle: React.CSSProperties = { width: '100%', padding: '11px 12px', border: '1px solid #dfe3dc', borderRadius: 8, background: '#fff', color: '#243329', fontSize: 13 };
-  const labelStyle: React.CSSProperties = { display: 'grid', gap: 6, color: '#59665b', fontSize: 12, fontWeight: 600 };
+  const fieldStyle: CSSProperties = { width: '100%', padding: '11px 12px', border: '1px solid #dfe3dc', borderRadius: 8, background: '#fff', color: '#243329', fontSize: 13 };
+  const labelStyle: CSSProperties = { display: 'grid', gap: 6, color: '#59665b', fontSize: 12, fontWeight: 600 };
 
   return <main style={{ minHeight: '100vh', background: '#f5f7f4', color: '#243329', padding: '28px 18px 60px' }}>
     <div style={{ maxWidth: 1120, margin: '0 auto' }}>
@@ -112,7 +113,7 @@ export default function AdminProductsPage() {
           <label style={{...labelStyle,gridColumn:'1/-1'}}>Product image URL<input type="url" style={fieldStyle} value={form.image_url} onChange={e=>setForm({...form,image_url:e.target.value})} placeholder="https://…"/></label>
           <label style={{...labelStyle,gridColumn:'1/-1'}}>Description<textarea rows={3} maxLength={5000} style={{...fieldStyle,resize:'vertical'}} value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/></label>
           <label style={{ display:'flex',alignItems:'center',gap:9,fontSize:13,color:'#425348',gridColumn:'1/-1' }}><input type="checkbox" checked={form.is_active} onChange={e=>setForm({...form,is_active:e.target.checked})}/> Publish this product on the storefront</label>
-          <div style={{gridColumn:'1/-1',display:'flex',justifyContent:'flex-end'}}><button disabled={saving} type="submit" style={{display:'inline-flex',alignItems:'center',gap:9,padding:'12px 19px',border:0,borderRadius:8,background:'#294936',color:'#fff',fontWeight:600,cursor:'pointer',opacity:saving?.65:1}}>{saving ? <RefreshCw size={16}/> : <Save size={16}/>} {saving ? 'Saving…' : editing ? 'Save changes' : 'Create product'}</button></div>
+          <div style={{gridColumn:'1/-1',display:'flex',justifyContent:'flex-end'}}><button disabled={saving} type="submit" style={{display:'inline-flex',alignItems:'center',gap:9,padding:'12px 19px',border:0,borderRadius:8,background:'#294936',color:'#fff',fontWeight:600,cursor:'pointer',opacity: saving ? 0.65 : 1}}>{saving ? <RefreshCw size={16}/> : <Save size={16}/>} {saving ? 'Saving…' : editing ? 'Save changes' : 'Create product'}</button></div>
         </form>
         {notice && <p role="status" style={{color:'#287044',fontSize:13,marginBottom:0}}>{notice}</p>}
         {error && <p role="alert" style={{color:'#b42318',fontSize:13,marginBottom:0}}>{error}</p>}
