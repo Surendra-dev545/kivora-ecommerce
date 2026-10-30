@@ -230,7 +230,7 @@ function DeliveryMap({orderId}:{orderId:string}) {
   const [location,setLocation]=useState<{latitude:number;longitude:number;accuracy_m:number|null;updated_at:string}|null>(null);
   const [riderName,setRiderName]=useState('Your Kivora rider');
   const [destinationAddress,setDestinationAddress]=useState('');
-  const [message,setMessage]=useState('Waiting for the rider to share their GPS location…');
+  const [message,setMessage]=useState('Live rider GPS has not been shared yet.');
   useEffect(()=>{
     if(!expanded)return;
     let alive=true;
@@ -244,8 +244,8 @@ function DeliveryMap({orderId}:{orderId:string}) {
         setRiderName(result.rider?.display_name || 'Your Kivora rider');
         setDestinationAddress(result.destinationAddress || '');
         if(result.location){setLocation(result.location);setMessage('Rider location received.');}
-        else{setLocation(null);setMessage('Your rider has not started GPS sharing yet.');}
-      }catch{if(alive)setMessage('Live location is temporarily unavailable.');}
+        else{setLocation(null);setMessage('Live rider GPS is not available yet.');}
+      }catch{if(alive)setMessage('We could not retrieve live rider GPS right now.');}
     };
     void refresh();const timer=window.setInterval(()=>void refresh(),10000);
     const channel=supabase.channel('delivery-location-'+orderId).on('postgres_changes',{event:'*',schema:'public',table:'order_delivery_tracking',filter:'order_id=eq.'+orderId},()=>void refresh()).subscribe();
@@ -256,7 +256,7 @@ function DeliveryMap({orderId}:{orderId:string}) {
       <MapPin size={16}/><span>{expanded?'Hide live delivery':'Track live delivery'}</span><span className="trackingMapToggleArrow">{expanded?'−':'+'}</span>
     </button>
     {expanded && (!location
-      ? <div className="trackingDeliveryNote"><MapPin size={17}/><div><strong>Waiting for rider location</strong><span>{message}</span></div></div>
+      ? <div className="trackingDeliveryNote"><MapPin size={17}/><div><strong>Live rider location unavailable</strong><span>{message}</span><span className="trackingGpsHint">Order status and tracking history above remain available. The live map will appear when rider GPS sharing is available.</span></div></div>
       : <DeliveryMapFrame location={location} riderName={riderName} destinationAddress={destinationAddress} />)}
   </div>;
 }
