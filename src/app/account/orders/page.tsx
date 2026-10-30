@@ -177,7 +177,7 @@ export default function OrdersPage() {
                     </div>;
                   })}</div>
                 </div>}
-                {order.status === 'out_for_delivery' && <div className="trackingDeliveryNote"><MapPin size={17}/><div><strong>Final delivery journey</strong><span>Your package is with the delivery partner. Live courier GPS is not connected yet, so we won't show an unverified map or location.</span></div></div>}
+                {['shipped', 'out_for_delivery'].includes(order.status) && <DeliveryMap orderId={order.id} />}
                 {waiting && <div className="trackingDeliveryNote"><Clock3 size={17}/><div><strong>Waiting for payment</strong><span>Your order timeline will begin once the payment is confirmed.</span></div></div>}
               </div>
 
@@ -204,4 +204,48 @@ export default function OrdersPage() {
       <footer className="commerceFooter"><Link className="detailLogo" href="/">kivora<span>.</span></Link><span>Thoughtfully found. Everyday loved.</span><Link href="/#shop">Shop all</Link></footer>
     </main>
   );
+}
+
+
+function DeliveryMap({orderId}:{orderId:string}) {
+  const [expanded,setExpanded]=useState(false);
+  const [location,setLocation]=useState<{latitude:number;longitude:number;updated_at:string}|null>(null);
+  const [message,setMessage]=useState('Waiting for the rider to share their GPS location…');
+  useEffect(()=>{
+    if(!expanded)return;
+    let alive=true;
+    const refresh=async()=>{
+      const {data}=await supabase.auth.getSession();const token=data.session?.access_token;
+      if(!token)return;
+      try{
+        const response=await fetch('/api/account/delivery-location?orderId='+encodeURIComponent(orderId),{headers:{Authorization:'Bearer '+token},cache:'no-store'});
+        const result=await response.json();if(!response.ok)throw new Error(result.error);
+        if(!alive)return;
+        if(result.location){setLocation(result.location);setMessage('Rider location received.');}
+        else{setLocation(null);setMessage('Waiting for the rider to start GPS sharing.');}
+      }catch{if(alive)setMessage('Live location is temporarily unavailable.');}
+    };
+    void refresh();const timer=window.setInterval(()=>void refresh(),10000);
+    const channel=supabase.channel('delivery-location-'+orderId).on('postgres_changes',{event:'*',schema:'public',table:'order_delivery_tracking',filter:'order_id=eq.'+orderId},()=>void refresh()).subscribe();
+    return()=>{alive=false;window.clearInterval(timer);void supabase.removeChannel(channel)};
+  },[orderId,expanded]);
+  return <div className="trackingLivePanel">
+    <button type="button" className="trackingMapToggle" onClick={()=>setExpanded(value=>!value)} aria-expanded={expanded}>
+      <MapPin size={16}/><span>{expanded?'Hide live delivery':'Track live delivery'}</span><span className="trackingMapToggleArrow">{expanded?'−':'+'}</span>
+    </button>
+    {expanded && (!location
+      ? <div className="trackingDeliveryNote"><MapPin size={17}/><div><strong>Waiting for rider location</strong><span>{message}</span></div></div>
+      : <DeliveryMapFrame location={location} />)}
+  </div>;
+}
+
+function DeliveryMapFrame({location}:{location:{latitude:number;longitude:number;updated_at:string}}) {
+  const lat=location.latitude,lon=location.longitude;
+  const bbox=[lon-0.008,lat-0.006,lon+0.008,lat+0.006].join('%2C');
+  const mapUrl='https://www.openstreetmap.org/export/embed.html?bbox='+bbox+'&layer=mapnik&marker='+lat+'%2C'+lon;
+  return <div style={{margin:'16px 0',border:'1px solid #e4e0da',borderRadius:12,overflow:'hidden'}}>
+    <div style={{padding:'12px 14px',display:'flex',justifyContent:'space-between',gap:12,flexWrap:'wrap'}}><strong>Live rider location</strong><span style={{fontSize:12,color:'#666'}}>Updated {new Date(location.updated_at).toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'})}</span></div>
+    <iframe title="Live delivery rider map" src={mapUrl} loading="lazy" style={{width:'100%',height:260,border:0}} />
+    <div style={{padding:'10px 14px',fontSize:12,color:'#666'}}>Location is shared by your assigned Kivora rider while delivery tracking is active.</div>
+  </div>;
 }
