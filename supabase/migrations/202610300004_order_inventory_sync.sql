@@ -1,5 +1,5 @@
 -- Keep catalogue stock in sync with new orders without rewriting historical orders.
--- Products created in the new catalogue use UUIDs; older sample product IDs are left untouched.
+-- Product IDs from the managed catalogue are UUIDs. Preview/sample product IDs are rejected.
 CREATE OR REPLACE FUNCTION public.kivora_apply_order_stock()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -11,24 +11,30 @@ DECLARE
   product_uuid uuid;
   qty integer;
   affected integer;
+  raw_product_id text;
 BEGIN
   IF TG_OP = 'INSERT' THEN
     FOR line IN SELECT value FROM jsonb_array_elements(COALESCE(NEW.items, '[]'::jsonb))
     LOOP
-      IF COALESCE(line->>'product_id', '') ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' THEN
-        product_uuid := (line->>'product_id')::uuid;
-        qty := GREATEST(1, COALESCE(NULLIF(line->>'quantity', '')::integer, 1));
-        UPDATE public.products
-          SET stock_quantity = stock_quantity - qty, updated_at = now()
-          WHERE id = product_uuid AND is_active = true AND stock_quantity >= qty;
-        GET DIAGNOSTICS affected = ROW_COUNT;
-        IF affected = 0 THEN
-          RAISE EXCEPTION 'Product % is unavailable or does not have enough stock.', COALESCE(line->>'name', product_uuid::text)
-            USING ERRCODE = '23514';
-        END IF;
-        INSERT INTO public.inventory_movements(product_id, quantity_change, reason, note, created_by)
-          VALUES (product_uuid, -qty, 'sale', 'Reserved for order ' || NEW.order_number, auth.uid());
+      raw_product_id := COALESCE(line->>'product_id', '');
+      IF raw_product_id = '' THEN
+        RAISE EXCEPTION 'An order item is missing its catalogue product ID.' USING ERRCODE = '23514';
       END IF;
+      IF raw_product_id !~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' THEN
+        RAISE EXCEPTION 'Preview products cannot be purchased. Please refresh the catalogue and select a published product.' USING ERRCODE = '23514';
+      END IF;
+      product_uuid := raw_product_id::uuid;
+      qty := GREATEST(1, COALESCE(NULLIF(line->>'quantity', '')::integer, 1));
+      UPDATE public.products
+        SET stock_quantity = stock_quantity - qty, updated_at = now()
+        WHERE id = product_uuid AND is_active = true AND stock_quantity >= qty;
+      GET DIAGNOSTICS affected = ROW_COUNT;
+      IF affected = 0 THEN
+        RAISE EXCEPTION 'Product % is unavailable or does not have enough stock.', COALESCE(line->>'name', product_uuid::text)
+          USING ERRCODE = '23514';
+      END IF;
+      INSERT INTO public.inventory_movements(product_id, quantity_change, reason, note, created_by)
+        VALUES (product_uuid, -qty, 'sale', 'Reserved for order ' || NEW.order_number, auth.uid());
     END LOOP;
     RETURN NEW;
   END IF;
@@ -36,8 +42,9 @@ BEGIN
   IF TG_OP = 'UPDATE' AND OLD.status IS DISTINCT FROM 'cancelled' AND NEW.status = 'cancelled' THEN
     FOR line IN SELECT value FROM jsonb_array_elements(COALESCE(OLD.items, '[]'::jsonb))
     LOOP
-      IF COALESCE(line->>'product_id', '') ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' THEN
-        product_uuid := (line->>'product_id')::uuid;
+      raw_product_id := COALESCE(line->>'product_id', '');
+      IF raw_product_id ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' THEN
+        product_uuid := raw_product_id::uuid;
         qty := GREATEST(1, COALESCE(NULLIF(line->>'quantity', '')::integer, 1));
         UPDATE public.products SET stock_quantity = stock_quantity + qty, updated_at = now()
           WHERE id = product_uuid;
