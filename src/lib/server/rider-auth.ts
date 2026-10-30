@@ -2,7 +2,7 @@ import { createClient, type SupabaseClient, type User } from '@supabase/supabase
 import { NextResponse } from 'next/server';
 
 export async function getVerifiedUser(request: Request): Promise<{ client: SupabaseClient; user: User } | { response: NextResponse }> {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/+$/, '').replace(/\/rest\/v1$/i, '');
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const token = (request.headers.get('authorization') ?? '').replace(/^Bearer\s+/i, '');
   if (!url || !key) return { response: NextResponse.json({ error: 'Server authentication is not configured.' }, { status: 503 }) };
