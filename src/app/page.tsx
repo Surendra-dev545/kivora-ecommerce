@@ -80,7 +80,27 @@ export default function Home() {
 
   const visibleCategories = useMemo(() => Array.from(new Set([...categories, ...catalog.map((p) => p.category)])).filter((value) => value === 'All' || catalog.some((p) => p.category === value)), [catalog]);
   const filtered = useMemo(() => catalog.filter((p) => (category === 'All' || p.category === category) && (p.name + ' ' + p.description + ' ' + p.category).toLowerCase().includes(search.toLowerCase())), [catalog, category, search]);
+  const groupedCart = cart.reduce<Array<{ product: Product; quantity: number }>>((items, product) => {
+    const existing = items.find((item) => String(item.product.id) === String(product.id));
+    if (existing) existing.quantity += 1;
+    else items.push({ product, quantity: 1 });
+    return items;
+  }, []);
   const total = cart.reduce((sum, p) => sum + p.price, 0);
+  const changeQuantity = (product: Product, delta: number) => {
+    setCart((current) => {
+      const matching = current.filter((item) => String(item.id) === String(product.id));
+      if (delta < 0 && matching.length <= 1) return current.filter((item) => String(item.id) !== String(product.id));
+      if (delta < 0) {
+        let removed = false;
+        return current.filter((item) => {
+          if (!removed && String(item.id) === String(product.id)) { removed = true; return false; }
+          return true;
+        });
+      }
+      return [...current, product];
+    });
+  };
   const addToCart = (product: Product) => { setCart((current) => [...current, product]); setAdded(product.id); window.setTimeout(() => setAdded((current) => current === product.id ? null : current), 1400); };
   const scrollToShop = () => { document.getElementById('shop')?.scrollIntoView({ behavior: 'smooth' }); setMobileMenu(false); };
 
@@ -120,7 +140,7 @@ export default function Home() {
       </div>
       <footer className="footer"><div className="siteWrap"><div className="footerTop"><div><a className="logo footerLogo" href="#">kivora<span>.</span></a><p>Everyday finds, elevated.</p></div><div className="footerLinks"><a href="#shop">Shop all</a><a href="#story">Our story</a><a href="mailto:hello@kivora.example">Contact</a></div><div className="footerSignoff">Made for the life you love. <span>✳</span></div></div><div className="footerBottom"><span>© 2026 Kivora. Demo storefront.</span><span>Thoughtfully found. Everyday loved.</span></div></div></footer>
 
-      {cartOpen && <div className="drawerBackdrop" onClick={() => setCartOpen(false)}><aside className="cartDrawer" role="dialog" aria-modal="true" aria-label="Shopping bag" onClick={(e) => e.stopPropagation()}><div className="drawerHeader"><div><span className="eyebrow">YOUR LITTLE FINDS</span><h2>Your bag <span>({cart.length})</span></h2></div><button className="iconButton" onClick={() => setCartOpen(false)} aria-label="Close shopping bag"><X size={21} /></button></div>{cart.length === 0 ? <div className="emptyBag"><span className="emptyBagIcon"><ShoppingBag size={27} /></span><h3>Your bag is taking a little break.</h3><p>It's ready when you find something you love.</p><button className="primaryButton" onClick={() => { setCartOpen(false); scrollToShop(); }}>Explore the collection <ArrowRight size={16} /></button></div> : <><div className="cartItems">{cart.map((p, index) => <div className="cartItem" key={`${p.id}-${index}`}><img src={p.image} alt="" /><div><b>{p.name}</b><small>{p.category}</small><button className="removeItem" onClick={() => setCart((current) => current.filter((_, i) => i !== index))}>Remove</button></div><strong>{money(p.price)}</strong></div>)}</div><div className="cartSummary"><div className="shippingMessage">{total >= 4999 ? 'You unlocked complimentary shipping!' : `You're ${money(4999 - total)} away from complimentary shipping.`}</div><div className="shippingTrack"><span style={{ width: `${Math.min(100, (total / 4999) * 100)}%` }} /></div><div className="cartTotal"><span>Subtotal</span><strong>{money(total)}</strong></div><p>Shipping and taxes calculated at checkout.</p><button className="checkoutButton" onClick={() => { window.location.assign('/checkout'); }}>Continue to checkout <ArrowRight size={17} /></button><button className="continueShopping" onClick={() => setCartOpen(false)}>Keep browsing</button></div></>}</aside></div>}
+      {cartOpen && <div className="drawerBackdrop" onClick={() => setCartOpen(false)}><aside className="cartDrawer" role="dialog" aria-modal="true" aria-label="Shopping bag" onClick={(e) => e.stopPropagation()}><div className="drawerHeader"><div><span className="eyebrow">YOUR LITTLE FINDS</span><h2>Your bag <span>({cart.length})</span></h2></div><button className="iconButton" onClick={() => setCartOpen(false)} aria-label="Close shopping bag"><X size={21} /></button></div>{cart.length === 0 ? <div className="emptyBag"><span className="emptyBagIcon"><ShoppingBag size={27} /></span><h3>Your bag is taking a little break.</h3><p>It's ready when you find something you love.</p><button className="primaryButton" onClick={() => { setCartOpen(false); scrollToShop(); }}>Explore the collection <ArrowRight size={16} /></button></div> : <><div className="cartItems">{groupedCart.map(({ product: p, quantity }) => <div className="cartItem" key={p.id}><img src={p.image} alt="" /><div><b>{p.name}</b><small>{p.category}</small><div className="cartQuantity" aria-label={`Quantity of ${p.name}`}><button aria-label={`Decrease ${p.name} quantity`} onClick={() => changeQuantity(p, -1)}>−</button><span>{quantity}</span><button aria-label={`Increase ${p.name} quantity`} onClick={() => changeQuantity(p, 1)}>+</button></div><button className="removeItem" onClick={() => setCart((current) => current.filter((item) => String(item.id) !== String(p.id)))}>Remove</button></div><strong>{money(p.price * quantity)}</strong></div>)}</div><div className="cartSummary"><div className="shippingMessage">{total >= 4999 ? 'You unlocked complimentary shipping!' : `You're ${money(4999 - total)} away from complimentary shipping.`}</div><div className="shippingTrack"><span style={{ width: `${Math.min(100, (total / 4999) * 100)}%` }} /></div><div className="cartTotal"><span>Subtotal</span><strong>{money(total)}</strong></div><p>Shipping and taxes calculated at checkout.</p><button className="checkoutButton" onClick={() => { window.location.assign('/checkout'); }}>Continue to checkout <ArrowRight size={17} /></button><button className="continueShopping" onClick={() => setCartOpen(false)}>Keep browsing</button></div></>}</aside></div>}
     </>
   );
 }
