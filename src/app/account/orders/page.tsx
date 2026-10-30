@@ -144,7 +144,7 @@ export default function OrdersPage() {
           })}
         </section>
       )}
-      <div className="ordersHelp"><Clock3 size={17} /><p><strong>Tracking updates</strong><br />Order stages are shown here when the store updates their status. Live courier tracking is not connected yet.</p></div>
+      <div className="ordersHelp"><Clock3 size={17} /><p><strong>Tracking updates</strong><br />Order status changes from the store appear here automatically. Live GPS location of the delivery partner is not connected yet.</p></div>
       <footer className="commerceFooter"><Link className="detailLogo" href="/">kivora<span>.</span></Link><span>Thoughtfully found. Everyday loved.</span><Link href="/#shop">Shop all</Link></footer>
     </main>
   );
