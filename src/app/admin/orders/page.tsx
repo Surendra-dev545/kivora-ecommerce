@@ -10,7 +10,7 @@ type Order = {
   shipping_address: string; items: { name: string; quantity: number; line_total: number; image?: string | null }[]; total: number;
   status: string; payment_method: string; payment_status: string; created_at: string;
 };
-const statuses = ['awaiting_payment', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
+const statuses = ['awaiting_payment', 'confirmed', 'processing', 'shipped', 'out_for_delivery', 'delivered', 'cancelled'];
 const money = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(Number(value));
 
 export default function AdminOrdersPage() {

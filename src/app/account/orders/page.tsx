@@ -16,7 +16,7 @@ type Order = {
   subtotal: number;
   shipping_fee: number;
   total: number;
-  status: 'awaiting_payment' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  status: 'awaiting_payment' | 'confirmed' | 'processing' | 'shipped' | 'out_for_delivery' | 'delivered' | 'cancelled';
   payment_method: string;
   payment_status: string;
   created_at: string;
@@ -25,7 +25,8 @@ const money = (amount: number) => new Intl.NumberFormat('en-IN', { style: 'curre
 const steps = [
   { key: 'confirmed', label: 'Order confirmed', note: 'We have received your order.', icon: Check },
   { key: 'processing', label: 'Preparing your order', note: 'Your items are being prepared.', icon: Package },
-  { key: 'shipped', label: 'On the way', note: 'Your package has been marked as shipped.', icon: Truck },
+  { key: 'shipped', label: 'Shipped', note: 'Your package has been handed to the delivery partner.', icon: Truck },
+  { key: 'out_for_delivery', label: 'Out for delivery', note: 'Your order is with the delivery partner for final delivery.', icon: Truck },
   { key: 'delivered', label: 'Delivered', note: 'Your order has been marked as delivered.', icon: PackageCheck },
 ];
 
@@ -100,7 +101,7 @@ export default function OrdersPage() {
             const cancelled = order.status === 'cancelled';
             const activeIndex = steps.findIndex((step) => step.key === order.status);
             return <article className="orderCard" key={order.id}>
-              <div className="orderCardHeader"><div><span className="orderEyebrow">ORDER NUMBER</span><h2>{order.order_number}</h2><p>Placed {new Date(order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</p></div><span className={cancelled ? 'orderStatus orderStatusCancelled' : 'orderStatus'}>{cancelled ? 'Cancelled' : order.status === 'awaiting_payment' ? 'Awaiting payment' : order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span></div>
+              <div className="orderCardHeader"><div><span className="orderEyebrow">ORDER NUMBER</span><h2>{order.order_number}</h2><p>Placed {new Date(order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</p></div><span className={cancelled ? 'orderStatus orderStatusCancelled' : 'orderStatus'}>{cancelled ? 'Cancelled' : order.status === 'awaiting_payment' ? 'Awaiting payment' : order.status === 'out_for_delivery' ? 'Out for delivery' : order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span></div>
               <div className="orderCardItems">{(order.items ?? []).map((item, index) => <div className="orderCardItem" key={index}><img src={item.image} alt="" /><div><strong>{item.name}</strong><small>{item.category} · Qty {item.quantity}</small></div><b>{money(item.line_total)}</b></div>)}</div>
               {cancelled ? <div className="cancelledNotice"><XCircle size={17} /> This order was cancelled. If you paid for it, contact support for help with a refund.</div> : order.status === 'awaiting_payment' ? <div className="cancelledNotice"><Clock3 size={17} /> Payment has not been completed. Finish checkout to confirm this order, or cancel it below.</div> : <div className="orderTimeline">{steps.map((step, index) => { const Icon = step.icon; const done = activeIndex >= index; return <div className={done ? 'timelineStep timelineStepDone' : 'timelineStep'} key={step.key}><span className="timelineIcon"><Icon size={15} /></span><div><strong>{step.label}</strong><small>{step.note}</small></div></div>; })}</div>}
               <div className="orderCardBottom"><div><span>Total</span><strong>{money(order.total)}</strong><small>{order.payment_method === 'cash_on_delivery' ? 'Cash on delivery · Payment ' + order.payment_status : order.payment_method === 'razorpay' ? 'Online payment · ' + order.payment_status : order.payment_method === 'demo' ? 'Demo payment · no money charged · unpaid' : order.payment_status}</small></div><div className="orderCardActions">{!cancelled && ['awaiting_payment','confirmed','processing'].includes(order.status) && <button className="commerceSecondary" onClick={() => void cancelOrder(order)} disabled={busyOrder === order.id}>{busyOrder === order.id ? 'Cancelling…' : 'Cancel order'}</button>}<Link className="orderHelpLink" href="/#shop">Shop again <ArrowRight size={14} /></Link></div></div>
