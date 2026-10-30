@@ -209,7 +209,9 @@ export default function OrdersPage() {
 
 function DeliveryMap({orderId}:{orderId:string}) {
   const [expanded,setExpanded]=useState(false);
-  const [location,setLocation]=useState<{latitude:number;longitude:number;updated_at:string}|null>(null);
+  const [location,setLocation]=useState<{latitude:number;longitude:number;accuracy_m:number|null;updated_at:string}|null>(null);
+  const [riderName,setRiderName]=useState('Your Kivora rider');
+  const [destinationAddress,setDestinationAddress]=useState('');
   const [message,setMessage]=useState('Waiting for the rider to share their GPS location…');
   useEffect(()=>{
     if(!expanded)return;
@@ -221,8 +223,10 @@ function DeliveryMap({orderId}:{orderId:string}) {
         const response=await fetch('/api/account/delivery-location?orderId='+encodeURIComponent(orderId),{headers:{Authorization:'Bearer '+token},cache:'no-store'});
         const result=await response.json();if(!response.ok)throw new Error(result.error);
         if(!alive)return;
+        setRiderName(result.rider?.display_name || 'Your Kivora rider');
+        setDestinationAddress(result.destinationAddress || '');
         if(result.location){setLocation(result.location);setMessage('Rider location received.');}
-        else{setLocation(null);setMessage('Waiting for the rider to start GPS sharing.');}
+        else{setLocation(null);setMessage('Your rider has not started GPS sharing yet.');}
       }catch{if(alive)setMessage('Live location is temporarily unavailable.');}
     };
     void refresh();const timer=window.setInterval(()=>void refresh(),10000);
@@ -235,17 +239,27 @@ function DeliveryMap({orderId}:{orderId:string}) {
     </button>
     {expanded && (!location
       ? <div className="trackingDeliveryNote"><MapPin size={17}/><div><strong>Waiting for rider location</strong><span>{message}</span></div></div>
-      : <DeliveryMapFrame location={location} />)}
+      : <DeliveryMapFrame location={location} riderName={riderName} destinationAddress={destinationAddress} />)}
   </div>;
 }
 
-function DeliveryMapFrame({location}:{location:{latitude:number;longitude:number;updated_at:string}}) {
+function DeliveryMapFrame({location,riderName,destinationAddress}:{location:{latitude:number;longitude:number;accuracy_m:number|null;updated_at:string};riderName:string;destinationAddress:string}) {
   const lat=location.latitude,lon=location.longitude;
+  const ageSeconds=Math.max(0,Math.floor((Date.now()-new Date(location.updated_at).getTime())/1000));
+  const isFresh=ageSeconds<=45;
   const bbox=[lon-0.008,lat-0.006,lon+0.008,lat+0.006].join('%2C');
   const mapUrl='https://www.openstreetmap.org/export/embed.html?bbox='+bbox+'&layer=mapnik&marker='+lat+'%2C'+lon;
-  return <div style={{margin:'16px 0',border:'1px solid #e4e0da',borderRadius:12,overflow:'hidden'}}>
-    <div style={{padding:'12px 14px',display:'flex',justifyContent:'space-between',gap:12,flexWrap:'wrap'}}><strong>Live rider location</strong><span style={{fontSize:12,color:'#666'}}>Updated {new Date(location.updated_at).toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'})}</span></div>
-    <iframe title="Live delivery rider map" src={mapUrl} loading="lazy" style={{width:'100%',height:260,border:0}} />
-    <div style={{padding:'10px 14px',fontSize:12,color:'#666'}}>Location is shared by your assigned Kivora rider while delivery tracking is active.</div>
+  const directionsUrl='https://www.google.com/maps/dir/?api=1&origin='+encodeURIComponent(lat+','+lon)+'&destination='+encodeURIComponent(destinationAddress)+'&travelmode=driving';
+  return <div style={{margin:'16px 0',border:'1px solid #e4e0da',borderRadius:14,overflow:'hidden',background:'#fff'}}>
+    <div style={{padding:'14px 16px',display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,flexWrap:'wrap'}}>
+      <div><strong style={{display:'block',fontSize:15}}>Your delivery partner</strong><span style={{fontSize:13,color:'#666'}}>{riderName}</span></div>
+      <span style={{fontSize:11,fontWeight:700,letterSpacing:'.06em',color:isFresh?'#18794e':'#9a6700',background:isFresh?'#eaf7ef':'#fff4dc',padding:'7px 10px',borderRadius:20}}>{isFresh?'● LIVE GPS':'GPS UPDATE DELAYED'}</span>
+    </div>
+    <iframe title="Live delivery rider map" src={mapUrl} loading="lazy" style={{width:'100%',height:280,border:0,display:'block'}} />
+    <div style={{padding:'12px 16px',display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,flexWrap:'wrap'}}>
+      <div><strong style={{display:'block',fontSize:13}}>Rider's current location</strong><span style={{fontSize:12,color:'#666'}}>{isFresh?'Updated '+ageSeconds+' seconds ago':'Last update '+new Date(location.updated_at).toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'})}{location.accuracy_m?' · GPS accuracy about '+Math.round(location.accuracy_m)+' m':''}</span></div>
+      {destinationAddress && <a href={directionsUrl} target="_blank" rel="noreferrer" style={{fontSize:12,fontWeight:700,color:'#242424',textDecoration:'underline'}}>View route in Maps ↗</a>}
+    </div>
+    <div style={{padding:'0 16px 14px',fontSize:12,color:'#777'}}>The map refreshes automatically while your rider shares GPS. Route directions open in Google Maps.</div>
   </div>;
 }
