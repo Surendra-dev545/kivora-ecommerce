@@ -191,7 +191,12 @@ export default function OrdersPage() {
                 <div className="trackingInfoCell"><CalendarClock size={16}/><div><span>LAST ORDER UPDATE</span><p>{dateLabel(order.updated_at || order.created_at)}</p></div></div>
               </div>
               <div className="trackingOrderFooter">
-                <div><span>ORDER TOTAL</span><strong>{money(order.total)}</strong><small>{order.payment_method === 'cash_on_delivery' ? 'Cash on delivery · ' + order.payment_status : order.payment_method === 'razorpay' ? 'Online payment · ' + order.payment_status : order.payment_method === 'demo' ? 'Demo payment · unpaid' : order.payment_status}</small></div>
+                <div className="trackingOrderTotals">
+                  {Number.isFinite(Number(order.subtotal)) && <small>Items subtotal · {money(order.subtotal)}</small>}
+                  {Number(order.shipping_fee) > 0 && <small>Delivery fee · {money(order.shipping_fee)}</small>}
+                  <span>ORDER TOTAL</span><strong>{money(order.total)}</strong>
+                  <small>{order.payment_method === 'cash_on_delivery' ? 'Cash on delivery · ' + order.payment_status : order.payment_method === 'razorpay' ? 'Online payment · ' + order.payment_status : order.payment_method === 'demo' ? 'Demo checkout · no payment collected' : order.payment_status}</small>
+                </div>
                 <div className="trackingOrderActions">{!cancelled && ['awaiting_payment','confirmed','processing'].includes(order.status) && <button className="commerceSecondary" onClick={() => void cancelOrder(order)} disabled={busyOrder === order.id}>{busyOrder === order.id ? 'Cancelling…' : 'Cancel order'}</button>}<Link className="trackingShopLink" href="/#shop">Shop again <ArrowRight size={14}/></Link></div>
               </div>
             </article>;
