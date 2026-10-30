@@ -67,7 +67,8 @@ export default function Home() {
     fetch('/api/products', { cache: 'no-store' }).then(async (response) => {
       if (!response.ok) return;
       const result = await response.json() as { products?: Array<{ id: string; name: string; category: string; price: number; image_url: string; description: string; stock_quantity: number }> };
-      if (!active || !Array.isArray(result.products)) return;
+      if (!active || !Array.isArray(result.products) || result.products.length === 0) return;
+      // Keep the preview catalogue visible if the database has no published products yet.
       setCatalog(result.products.map((p) => ({
         id: p.id, name: p.name, category: p.category, price: Number(p.price),
         image: p.image_url, description: p.description,
