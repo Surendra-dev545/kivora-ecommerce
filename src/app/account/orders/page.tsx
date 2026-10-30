@@ -61,6 +61,41 @@ export default function OrdersPage() {
     if (placed) setNotice('Thank you! Order ' + placed + ' has been placed successfully.');
   }, [loadOrders]);
 
+  // Subscribe to this customer's order changes so tracking updates without a refresh.
+  useEffect(() => {
+    let cancelled = false;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    void supabase.auth.getUser().then(({ data }) => {
+      if (cancelled || !data.user) return;
+      channel = supabase
+        .channel('customer-order-tracking-' + data.user.id)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'orders',
+            filter: 'user_id=eq.' + data.user.id,
+          },
+          (payload) => {
+            const updated = payload.new as Partial<Order>;
+            setOrders((current) =>
+              current.map((order) =>
+                order.id === updated.id ? { ...order, ...updated } as Order : order
+              )
+            );
+          }
+        )
+        .subscribe();
+    });
+
+    return () => {
+      cancelled = true;
+      if (channel) void supabase.removeChannel(channel);
+    };
+  }, []);
+
   async function cancelOrder(order: Order) {
     const approved = window.confirm('Cancel order ' + order.order_number + '? This can only be done before it ships.');
     if (!approved) return;
@@ -109,7 +144,7 @@ export default function OrdersPage() {
           })}
         </section>
       )}
-      <div className="ordersHelp"><Clock3 size={17} /><p><strong>Tracking updates</strong><br />Order stages are shown here when the store updates their status. Live courier tracking is not connected yet.</p></div>
+      <div className="ordersHelp"><Clock3 size={17} /><p><strong>Tracking updates</strong><br />Order status changes from the store appear here automatically. Live GPS location of the delivery partner is not connected yet.</p></div>
       <footer className="commerceFooter"><Link className="detailLogo" href="/">kivora<span>.</span></Link><span>Thoughtfully found. Everyday loved.</span><Link href="/#shop">Shop all</Link></footer>
     </main>
   );
