@@ -47,6 +47,8 @@ export default function OrdersPage() {
   const [busyOrder, setBusyOrder] = useState<string | null>(null);
   const [live, setLive] = useState<'connecting' | 'live' | 'fallback'>('connecting');
   const [lastSync, setLastSync] = useState('');
+  const [orderFilter, setOrderFilter] = useState<'all' | 'active' | 'delivered' | 'cancelled'>('all');
+  const filteredOrders = orders.filter((order) => orderFilter === 'all' || (orderFilter === 'active' ? !['delivered', 'cancelled'].includes(order.status) : order.status === orderFilter));
 
   const loadOrders = useCallback(async (showLoader = true) => {
     if (showLoader) setLoading(true);
@@ -148,7 +150,8 @@ export default function OrdersPage() {
       ) : (
         <section className="trackingOrders">
           <div className="trackingSectionHead"><div><span className="trackingOverline">ORDER ACTIVITY</span><h2>Your shopping journey</h2></div><span className="trackingLive"><i className={live === 'live' ? 'trackingLiveDot' : 'trackingLiveDot trackingLiveDotMuted'} />{live === 'live' ? 'LIVE UPDATES' : 'AUTO REFRESH ON'}</span></div>
-          {orders.map((order) => {
+          <div className="ordersFilterBar" role="group" aria-label="Filter orders">{([{key:'all',label:'All orders',count:orders.length},{key:'active',label:'In progress',count:orders.filter((order)=>!['delivered','cancelled'].includes(order.status)).length},{key:'delivered',label:'Delivered',count:orders.filter((order)=>order.status==='delivered').length},{key:'cancelled',label:'Cancelled',count:orders.filter((order)=>order.status==='cancelled').length}] as const).map((filter)=><button type="button" key={filter.key} className={orderFilter===filter.key?'ordersFilterActive':'ordersFilter'} onClick={()=>setOrderFilter(filter.key)} aria-pressed={orderFilter===filter.key}>{filter.label}<span>{filter.count}</span></button>)}</div>
+          {filteredOrders.length === 0 ? <div className="ordersFilterEmpty"><Package size={20}/><p>No orders in this category.</p></div> : filteredOrders.map((order) => {
             const cancelled = order.status === 'cancelled';
             const waiting = order.status === 'awaiting_payment';
             const activeIndex = steps.findIndex((step) => step.key === order.status);
