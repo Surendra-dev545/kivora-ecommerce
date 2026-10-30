@@ -7,7 +7,7 @@ import { ArrowLeft, ArrowRight, CheckCircle2, CreditCard, LockKeyhole, PackageCh
 import { supabase } from '@/lib/supabase';
 import { getCountries, getCountryCallingCode, isValidPhoneNumber } from 'libphonenumber-js';
 
-type CartProduct = { id: number; name: string; category: string; price: number; image: string; description?: string };
+type CartProduct = { id: number | string; name: string; category: string; price: number; image: string; description?: string };
 type PaymentMethod = 'cash_on_delivery' | 'razorpay' | 'demo';
 type RazorpayOptions = {
   key: string;
