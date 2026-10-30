@@ -1,0 +1,108 @@
+.trackingPage{max-width:1440px;margin:0 auto;padding:0 5.2%;min-height:100vh}
+.trackingHeader{height:82px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr 1fr;align-items:center}
+.trackingHero{display:flex;justify-content:space-between;align-items:flex-end;padding:54px 0 34px;border-bottom:1px solid var(--line)}
+.trackingHero h1{font-family:var(--serif);font-size:clamp(48px,6vw,72px);font-weight:400;letter-spacing:-.065em;margin:17px 0 9px;line-height:1}
+.trackingHero h1 span{color:#829267}
+.trackingHero>div>p{font-size:12px;color:#777a70;margin:0}
+.trackingHero .ordersSignedIn{margin-top:12px;font-size:10px}
+.trackingHeroMark{width:154px;height:112px;background:#eceee5;color:#657657;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+.trackingHeroMark span{font-size:8px;letter-spacing:.15em;text-align:center;line-height:1.6;color:#6b7562}
+.trackingOrders{padding:38px 0 24px}
+.trackingSectionHead{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px}
+.trackingOverline{font-size:8px;letter-spacing:.16em;color:#858a7d;font-weight:700}
+.trackingSectionHead h2{font-family:var(--serif);font-size:31px;font-weight:400;letter-spacing:-.04em;margin:8px 0 0}
+.trackingLive{display:flex;align-items:center;gap:8px;font-size:8px;letter-spacing:.12em;color:#657657;font-weight:700}
+.trackingLiveDot{width:7px;height:7px;border-radius:50%;background:#6c8b59;box-shadow:0 0 0 4px #e5eddf}
+.trackingLiveDotMuted{background:#a6a99d;box-shadow:0 0 0 4px #eeeee8}
+.trackingOrderCard{background:#fff;border:1px solid #e8e7df;margin-bottom:22px;box-shadow:0 8px 28px #27332608}
+.trackingOrderTop{display:flex;justify-content:space-between;align-items:center;padding:23px 26px;border-bottom:1px solid #eeede7}
+.trackingOrderTop h3{font-size:16px;letter-spacing:.01em;margin:6px 0 5px;font-weight:700}
+.trackingOrderTop p{font-size:9px;color:#85887f;margin:0}
+.trackingStatus{display:inline-flex;align-items:center;background:#edf2e8;color:#49613f;padding:9px 12px;font-size:9px;font-weight:700;text-transform:capitalize;letter-spacing:.02em}
+.trackingStatusCancelled{background:#f5e9e6;color:#995c50}
+.trackingJourney{padding:22px 26px 25px;background:#fafaf7;border-bottom:1px solid #eeede7}
+.trackingJourneyBanner{display:flex;align-items:center;gap:14px}
+.trackingJourneyIcon{width:46px;height:46px;flex:0 0 46px;display:grid;place-items:center;background:#e9eee2;color:#5c7350;border-radius:50%}
+.trackingJourneyCancelled .trackingJourneyIcon{background:#f5e9e6;color:#995c50}
+.trackingJourneyBanner h4{font-family:var(--serif);font-size:23px;font-weight:400;letter-spacing:-.025em;margin:4px 0 4px}
+.trackingJourneyBanner p{font-size:10px;line-height:1.6;color:#777a70;margin:0}
+.trackingProgress{position:relative;margin:31px 3px 3px}
+.trackingProgressRail{height:3px;background:#e5e6df;position:absolute;left:0;right:0;top:13px}
+.trackingProgressRail span{display:block;height:100%;background:#7b906a;transition:width .35s ease}
+.trackingSteps{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));position:relative}
+.trackingStep{display:flex;flex-direction:column;align-items:center;gap:9px;text-align:center;color:#92958b;font-size:8px;line-height:1.35}
+.trackingStep:first-child{align-items:flex-start;text-align:left}
+.trackingStep:last-child{align-items:flex-end;text-align:right}
+.trackingStepIcon{width:28px;height:28px;border-radius:50%;background:#f0f0eb;border:2px solid #e1e3da;display:grid;place-items:center;color:#96998f;z-index:1}
+.trackingStepDone{color:#53694a;font-weight:700}
+.trackingStepDone .trackingStepIcon{background:#718665;border-color:#718665;color:#fff}
+.trackingStepCurrent .trackingStepIcon{box-shadow:0 0 0 5px #e7eddf}
+.trackingDeliveryNote{display:flex;gap:11px;align-items:flex-start;margin-top:24px;padding:13px 15px;background:#eef0e8;color:#66785a}
+.trackingDeliveryNote>svg{flex-shrink:0;margin-top:2px}
+.trackingDeliveryNote strong,.trackingDeliveryNote span{display:block}
+.trackingDeliveryNote strong{font-size:10px;color:#3f5039;margin-bottom:4px}
+.trackingDeliveryNote span{font-size:9px;line-height:1.6;color:#70766a}
+.trackingItems{padding:19px 26px 15px;border-bottom:1px solid #eeede7}
+.trackingBlockTitle{display:flex;justify-content:space-between;margin-bottom:8px;font-size:8px;letter-spacing:.13em;color:#858a7d;font-weight:700}
+.trackingBlockTitle span:last-child{letter-spacing:0;font-weight:400}
+.trackingItem{display:grid;grid-template-columns:52px 1fr auto;align-items:center;gap:13px;padding:10px 0}
+.trackingItem img{width:52px;height:58px;object-fit:cover;background:#eeede7}
+.trackingItem strong,.trackingItem small{display:block}
+.trackingItem strong{font-size:10px;font-weight:600;margin-bottom:5px}
+.trackingItem small{font-size:9px;color:#85887f}
+.trackingItem>b{font-size:10px;font-weight:600}
+.trackingBottom{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:19px 26px;border-bottom:1px solid #eeede7}
+.trackingInfoCell{display:flex;gap:10px;align-items:flex-start;color:#78866a}
+.trackingInfoCell>svg{flex-shrink:0;margin-top:1px}
+.trackingInfoCell span{font-size:7px;letter-spacing:.13em;font-weight:700;color:#858a7d}
+.trackingInfoCell p{font-size:9px;line-height:1.6;color:#50564c;margin:6px 0 0;overflow-wrap:anywhere}
+.trackingOrderFooter{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:18px 26px}
+.trackingOrderFooter>div:first-child>span,.trackingOrderFooter small{display:block}
+.trackingOrderFooter>div:first-child>span{font-size:7px;letter-spacing:.14em;color:#858a7d;font-weight:700}
+.trackingOrderFooter>div:first-child>strong{display:block;font-size:19px;margin:5px 0}
+.trackingOrderFooter small{font-size:8px;color:#85887f}
+.trackingOrderActions{display:flex;align-items:center;gap:18px}
+.trackingShopLink{display:inline-flex;align-items:center;gap:7px;text-decoration:none;font-size:9px;color:#506447;border-bottom:1px solid #c5cdbb;padding:8px 0}
+.trackingSync{display:flex;align-items:center;gap:9px;color:#85887f;font-size:9px;padding:8px 0}
+.trackingSync>svg{color:#7b8b6c}
+.trackingSync button{margin-left:auto;border:1px solid #e2e3db;background:transparent;color:#68745e;width:30px;height:30px;display:grid;place-items:center}
+.trackingTrust{display:flex;align-items:center;gap:12px;padding:17px 19px;margin:10px 0 40px;background:#eceee5;color:#6b7b5d}
+.trackingTrust p{font-size:9px;line-height:1.6;color:#73786c;margin:0}
+.trackingTrust strong{color:#46563e;font-size:10px}
+@media(max-width:700px){
+.trackingPage{padding:0 18px}
+.trackingHeader{height:69px}
+.trackingHero{padding:38px 0 26px;align-items:center;gap:10px}
+.trackingHero h1{font-size:49px}
+.trackingHero>div>p{font-size:10px;line-height:1.6}
+.trackingHeroMark{width:91px;height:88px;flex-shrink:0}
+.trackingHeroMark svg{width:25px}
+.trackingHeroMark span{font-size:6px}
+.trackingOrders{padding:29px 0 18px}
+.trackingSectionHead h2{font-size:25px}
+.trackingLive{font-size:7px;gap:6px}
+.trackingOrderTop{padding:17px 15px;gap:10px}
+.trackingOrderTop h3{font-size:13px}
+.trackingStatus{font-size:8px;padding:8px 9px;text-align:center}
+.trackingJourney{padding:19px 15px 20px}
+.trackingJourneyBanner{gap:10px}
+.trackingJourneyIcon{width:39px;height:39px;flex-basis:39px}
+.trackingJourneyBanner h4{font-size:19px}
+.trackingJourneyBanner p{font-size:9px}
+.trackingProgress{margin:25px 0 2px}
+.trackingStep{font-size:7px;gap:7px}
+.trackingStepIcon{width:25px;height:25px}
+.trackingProgressRail{top:11px}
+.trackingDeliveryNote{margin-top:18px;padding:11px}
+.trackingDeliveryNote span{font-size:8px}
+.trackingItems{padding:16px 15px 12px}
+.trackingItem{grid-template-columns:45px 1fr auto;gap:10px}
+.trackingItem img{width:45px;height:51px}
+.trackingItem strong{font-size:9px}
+.trackingItem small{font-size:8px}
+.trackingBottom{grid-template-columns:1fr;gap:14px;padding:16px 15px}
+.trackingOrderFooter{padding:16px 15px;align-items:flex-start;flex-direction:column}
+.trackingOrderActions{width:100%;justify-content:space-between}
+.trackingOrderFooter>div:first-child>strong{font-size:17px}
+.trackingTrust{margin:7px 0 30px;padding:14px}
+}
