@@ -112,3 +112,16 @@
 .trackingMapToggleArrow{margin-left:auto;font-size:17px;line-height:1}
 .trackingMapToggle:hover{background:#e9eee3}
 .trackingLivePanel .trackingDeliveryNote{margin-top:10px}
+
+
+.trackingCancelledTimeline{display:grid;grid-template-columns:1fr;max-width:680px;margin:25px 0 2px;padding-left:2px}
+.trackingCancelledEvent{position:relative;display:grid;grid-template-columns:27px minmax(0,1fr);gap:12px;padding:0 0 22px}
+.trackingCancelledEvent:not(.trackingCancelledEventLast):before{content:"";position:absolute;left:12px;top:26px;bottom:0;width:2px;background:#cbd5c2}
+.trackingCancelledEventLast{padding-bottom:0}
+.trackingCancelledPoint{position:relative;z-index:1;width:26px;height:26px;display:grid;place-items:center;border-radius:50%;background:#f5e9e6;color:#995c50;border:1px solid #e8c9c2}
+.trackingCancelledPointDone{background:#718665;color:#fff;border-color:#718665}
+.trackingCancelledEvent strong,.trackingCancelledEvent span,.trackingCancelledEvent p{display:block}
+.trackingCancelledEvent strong{font-size:11px;color:#42483e;margin:1px 0 5px}
+.trackingCancelledEvent div>span{font-size:9px;color:#85887f}
+.trackingCancelledEvent p{font-size:9px;line-height:1.6;color:#777a70;margin:6px 0 0}
+@media(max-width:700px){.trackingCancelledTimeline{margin-top:21px}.trackingCancelledEvent{gap:10px;padding-bottom:19px}}
