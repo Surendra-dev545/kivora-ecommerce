@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { ArrowLeft, ArrowRight, Check, Heart, ShieldCheck, Sparkles, Truck } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const products = [
   { id: 1, name: 'Everyday Carry Tote', category: 'Accessories', price: 3999, image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=1200&q=90', tag: 'Bestseller', description: 'A roomy, considered companion for every day.', details: ['An easy everyday shape with room for your essentials', 'Versatile styling for workdays and weekends', 'A thoughtful pick for life on the go'] },
@@ -23,15 +23,29 @@ const money = (amount: number) => new Intl.NumberFormat('en-IN', { style: 'curre
 
 export default function ProductDetailPage() {
   const params = useParams<{ id: string }>();
-  const product = products.find((item) => item.id === Number(params.id));
+  const [databaseProduct, setDatabaseProduct] = useState<null | { id: string; name: string; category: string; price: number; image: string; description: string; details: string[] }>(null);
   const [saved, setSaved] = useState(false);
   const [added, setAdded] = useState(false);
+  const product = databaseProduct ?? products.find((item) => item.id === Number(params.id));
+
+  useEffect(() => {
+    if (/^\d+$/.test(params.id)) return;
+    let active = true;
+    fetch('/api/products?id=' + encodeURIComponent(params.id), { cache: 'no-store' }).then(async (response) => {
+      if (!response.ok) return;
+      const result = await response.json() as { product?: { id: string; name: string; category: string; price: number; image_url: string; description: string } };
+      if (!active || !result.product) return;
+      const item = result.product;
+      setDatabaseProduct({ id: item.id, name: item.name, category: item.category, price: Number(item.price), image: item.image_url, description: item.description, details: item.description ? [item.description, 'Available stock is updated by Kivora.', 'Secure checkout and order tracking are available.'] : ['A product selected by Kivora.', 'Available stock is updated by Kivora.', 'Secure checkout and order tracking are available.'] });
+    }).catch(() => undefined);
+    return () => { active = false; };
+  }, [params.id]);
 
   function addToBag() {
     if (!product) return;
     try {
       const saved = window.localStorage.getItem('kivora-cart');
-      const current = saved ? JSON.parse(saved) as Array<{ id: number; name: string; category: string; price: number; image: string; description: string }> : [];
+      const current = saved ? JSON.parse(saved) as Array<{ id: number | string; name: string; category: string; price: number; image: string; description: string }> : [];
       current.push({ id: product.id, name: product.name, category: product.category, price: product.price, image: product.image, description: product.description });
       window.localStorage.setItem('kivora-cart', JSON.stringify(current));
       setAdded(true);
