@@ -106,3 +106,9 @@
 .trackingOrderFooter>div:first-child>strong{font-size:17px}
 .trackingTrust{margin:7px 0 30px;padding:14px}
 }
+
+.trackingLivePanel{margin:17px 0 2px}
+.trackingMapToggle{display:flex;align-items:center;gap:9px;width:100%;padding:12px 15px;border:1px solid #cbd2c2;background:#f3f5ef;color:#40553a;text-align:left;font:600 10px inherit;letter-spacing:.025em;cursor:pointer}
+.trackingMapToggleArrow{margin-left:auto;font-size:17px;line-height:1}
+.trackingMapToggle:hover{background:#e9eee3}
+.trackingLivePanel .trackingDeliveryNote{margin-top:10px}
