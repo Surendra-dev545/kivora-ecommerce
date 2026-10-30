@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, ArrowUpRight, Check, ChevronDown, Heart, Menu, Search, ShoppingBag, Sparkles, UserRound, X } from 'lucide-react';
 
-type Product = { id: number; name: string; category: string; price: number; image: string; tag?: string; description: string };
+type Product = { id: number | string; name: string; category: string; price: number; image: string; tag?: string; description: string };
 
 const products: Product[] = [
   { id: 1, name: 'Everyday Carry Tote', category: 'Accessories', price: 3999, image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=900&q=85', tag: 'Bestseller', description: 'A roomy, considered companion for every day.' },
@@ -36,14 +36,14 @@ const categories = ['All', 'Fashion', 'Home', 'Technology', 'Accessories', 'Well
 const money = (amount: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
 
 export default function Home() {
-  const [category, setCategory] = useState('All');
+  const [catalog, setCatalog] = useState<Product[]>(products);\n  const [catalogSource, setCatalogSource] = useState<'samples' | 'database'>('samples');\n  const [category, setCategory] = useState('All');
   const [search, setSearch] = useState('');
   const [cart, setCart] = useState<Product[]>([]);
   const [cartLoaded, setCartLoaded] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
-  const [favorites, setFavorites] = useState<number[]>([]);
-  const [added, setAdded] = useState<number | null>(null);
+  const [favorites, setFavorites] = useState<Array<number | string>>([]);
+  const [added, setAdded] = useState<number | string | null>(null);
 
   useEffect(() => {
     try {
@@ -60,7 +60,7 @@ export default function Home() {
     if (cartLoaded) window.localStorage.setItem('kivora-cart', JSON.stringify(cart));
   }, [cart, cartLoaded]);
 
-  const filtered = useMemo(() => products.filter((p) => (category === 'All' || p.category === category) && (p.name + ' ' + p.description + ' ' + p.category).toLowerCase().includes(search.toLowerCase())), [category, search]);
+  const filtered = useMemo(() => catalog.filter((p) => (category === 'All' || p.category === category) && (p.name + ' ' + p.description + ' ' + p.category).toLowerCase().includes(search.toLowerCase())), [catalog, category, search]);
   const total = cart.reduce((sum, p) => sum + p.price, 0);
   const addToCart = (product: Product) => { setCart((current) => [...current, product]); setAdded(product.id); window.setTimeout(() => setAdded((current) => current === product.id ? null : current), 1400); };
   const scrollToShop = () => { document.getElementById('shop')?.scrollIntoView({ behavior: 'smooth' }); setMobileMenu(false); };
@@ -89,7 +89,7 @@ export default function Home() {
 
           <section className="valueStrip" aria-label="Store benefits"><div><span className="valueIcon">✳</span><span><b>Thoughtfully chosen</b><small>Quality over clutter</small></span></div><div><span className="valueIcon">↗</span><span><b>Made for real life</b><small>Useful, beautiful essentials</small></span></div><div><span className="valueIcon">♡</span><span><b>A little more joy</b><small>Good things, good feelings</small></span></div><div><span className="valueIcon">◎</span><span><b>Easy everyday shopping</b><small>Free shipping over ₹4,999</small></span></div></section>
 
-          <section className="shopSection" id="shop"><div className="sectionHeading"><div><span className="eyebrow"><span className="eyebrowLine" /> THE GOOD STUFF</span><h2>Find your <em>favorite.</em></h2><p>Little upgrades, everyday groceries and treats in one place.</p><p className="resultCount">New category prices and listings are samples—confirm stock and final prices before taking orders.</p></div><button className="textLink" onClick={() => { setCategory('All'); setSearch(''); }}>View all products <ArrowRight size={16} /></button></div>
+          <section className="shopSection" id="shop"><div className="sectionHeading"><div><span className="eyebrow"><span className="eyebrowLine" /> THE GOOD STUFF</span><h2>Find your <em>favorite.</em></h2><p>Little upgrades, everyday groceries and treats in one place.</p><p className="resultCount">{catalogSource === 'database' ? 'Live catalogue · prices and available stock are managed by Kivora.' : 'Preview catalogue · apply the product catalogue migration to manage live listings and stock.'}</p></div><button className="textLink" onClick={() => { setCategory('All'); setSearch(''); }}>View all products <ArrowRight size={16} /></button></div>
             <div className="shopToolbar"><div className="categoryFilters" aria-label="Filter products">{categories.map((c) => <button key={c} className={category === c ? 'filterPill filterActive' : 'filterPill'} onClick={() => setCategory(c)}>{c}</button>)}</div><span className="resultCount">{filtered.length} pieces</span></div>
             {filtered.length ? <div className="productGrid">{filtered.map((p, index) => <article className="productCard" key={p.id}><div className="productPhotoWrap"><img className="productPhoto" src={p.image} alt={p.name} loading={index > 3 ? 'lazy' : 'eager'} /><span className="productCategory">{p.category}</span>{p.tag && <span className="productTag">{p.tag}</span>}<button className={favorites.includes(p.id) ? 'favoriteButton favorited' : 'favoriteButton'} onClick={() => setFavorites((current) => current.includes(p.id) ? current.filter((id) => id !== p.id) : [...current, p.id])} aria-label={favorites.includes(p.id) ? `Remove ${p.name} from favorites` : `Add ${p.name} to favorites`}><Heart size={17} fill={favorites.includes(p.id) ? 'currentColor' : 'none'} /></button><button className="quickAdd" onClick={() => addToCart(p)}>{added === p.id ? <><Check size={15} /> Added to bag</> : <>Quick add <span>+</span></>}</button></div><div className="productDetails"><div><h3><a className="productNameLink" href={`/products/${p.id}`}>{p.name}</a></h3><p>{p.description}</p></div><strong>{money(p.price)}</strong></div></article>)}</div> : <div className="noResults"><Search size={24} /><h3>No little treasures found</h3><p>Try another search or explore all of our finds.</p><button className="primaryButton" onClick={() => { setSearch(''); setCategory('All'); }}>Show all products</button></div>}
           </section>
