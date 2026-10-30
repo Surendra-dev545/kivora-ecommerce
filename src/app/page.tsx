@@ -62,6 +62,22 @@ export default function Home() {
     if (cartLoaded) window.localStorage.setItem('kivora-cart', JSON.stringify(cart));
   }, [cart, cartLoaded]);
 
+  useEffect(() => {
+    let active = true;
+    fetch('/api/products', { cache: 'no-store' }).then(async (response) => {
+      if (!response.ok) return;
+      const result = await response.json() as { products?: Array<{ id: string; name: string; category: string; price: number; image_url: string; description: string; stock_quantity: number }> };
+      if (!active || !Array.isArray(result.products)) return;
+      setCatalog(result.products.map((p) => ({
+        id: p.id, name: p.name, category: p.category, price: Number(p.price),
+        image: p.image_url, description: p.description,
+        tag: p.stock_quantity <= 5 ? 'Limited stock' : undefined,
+      })));
+      setCatalogSource('database');
+    }).catch(() => undefined);
+    return () => { active = false; };
+  }, []);
+
   const visibleCategories = useMemo(() => Array.from(new Set([...categories, ...catalog.map((p) => p.category)])).filter((value) => value === 'All' || catalog.some((p) => p.category === value)), [catalog]);
   const filtered = useMemo(() => catalog.filter((p) => (category === 'All' || p.category === category) && (p.name + ' ' + p.description + ' ' + p.category).toLowerCase().includes(search.toLowerCase())), [catalog, category, search]);
   const total = cart.reduce((sum, p) => sum + p.price, 0);
