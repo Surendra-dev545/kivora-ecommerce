@@ -36,7 +36,9 @@ const categories = ['All', 'Fashion', 'Home', 'Technology', 'Accessories', 'Well
 const money = (amount: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
 
 export default function Home() {
-  const [catalog, setCatalog] = useState<Product[]>(products);\n  const [catalogSource, setCatalogSource] = useState<'samples' | 'database'>('samples');\n  const [category, setCategory] = useState('All');
+  const [catalog, setCatalog] = useState<Product[]>(products);
+  const [catalogSource, setCatalogSource] = useState<'samples' | 'database'>('samples');
+  const [category, setCategory] = useState('All');
   const [search, setSearch] = useState('');
   const [cart, setCart] = useState<Product[]>([]);
   const [cartLoaded, setCartLoaded] = useState(false);
