@@ -1,7 +1,8 @@
+import type { CSSProperties } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, ArrowRight, ClipboardList, Package, Store } from 'lucide-react';
 
-const tileStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: 22, border: '1px solid #e1e8df', borderRadius: 14, background: '#fff', color: '#263b2d', textDecoration: 'none' };
+const tileStyle: CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: 22, border: '1px solid #e1e8df', borderRadius: 14, background: '#fff', color: '#263b2d', textDecoration: 'none' };
 
 export default function AdminHomePage() {
   return <main style={{ minHeight: '100vh', background: '#f5f7f4', color: '#243329', padding: '32px 18px' }}>
